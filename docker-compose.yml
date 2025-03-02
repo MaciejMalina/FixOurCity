@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend/symfony
+    container_name: symfony_backend
+    working_dir: /var/www/html
+    volumes:
+      - ./backend/symfony:/var/www/html
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+    environment:
+      DATABASE_URL: "postgresql://admin:secret@database:5432/city_reports"
+    command: php -S 0.0.0.0:8000 -t public
+
+  database:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: city_reports
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  frontend:
+    build: ./frontend
+    container_name: react_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    command: npm run dev
+
+volumes:
+  pgdata:
