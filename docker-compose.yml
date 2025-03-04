@@ -10,22 +10,33 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - database
+      - postgres
     environment:
-      DATABASE_URL: "postgresql://admin:secret@database:5432/city_reports"
+      DATABASE_URL: "postgresql://user:password@postgres:5432/fixourcity"
     command: php -S 0.0.0.0:8000 -t public
 
-  database:
-    image: postgres:15
+  postgres:
+    image: postgres:latest
     container_name: postgres_db
     environment:
-      POSTGRES_DB: city_reports
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: secret
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fixourcity
+    volumes:
+      - ./Docker/postgres/:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "support@fixourcity.com"
+      PGADMIN_DEFAULT_PASSWORD: "password"
+    depends_on:
+      - postgres
 
   frontend:
     build: ./frontend
