@@ -1,68 +1,79 @@
 <?php
 namespace App\Controller;
+
+use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class UserController extends AbstractController
 {
     #[Route('/api/users', name: 'get_users', methods: ['GET'])]
-    public function getUsers(): JsonResponse
+    public function getUsers(EntityManagerInterface $em): JsonResponse
     {
-        $users = [
-            ['id' => 1, 'name' => 'Jan Kowalski', 'email' => 'jan@example.com'],
-            ['id' => 2, 'name' => 'Anna Nowak', 'email' => 'anna@example.com'],
-        ];
-        return $this->json($users);
+        $users = $em->getRepository(User::class)->findAll();
+        return $this->json($users, 200);
     }
 
     #[Route('/api/users/{id}', name: 'get_user_by_id', methods: ['GET'])]
-    public function getUserById(int $id): JsonResponse
+    public function getUserById(int $id, EntityManagerInterface $em): JsonResponse
     {
-        $users = [
-            1 => ['id' => 1, 'name' => 'Jan Kowalski', 'email' => 'jan@example.com'],
-            2 => ['id' => 2, 'name' => 'Anna Nowak', 'email' => 'anna@example.com'],
-        ];
-        if (!isset($users[$id])) {
+        $user = $em->getRepository(User::class)->find($id);
+        if (!$user) {
             return $this->json(['error' => 'User not found'], 404);
         }
-        return $this->json($users[$id]);
+        return $this->json($user, 200);
     }
 
     #[Route('/api/users', name: 'create_user', methods: ['POST'])]
-    public function createUser(Request $request): JsonResponse
+    public function createUser(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        if (!isset($data['name']) || !isset($data['email'])) {
+        if (!isset($data['email']) || !isset($data['password'])) {
             return $this->json(['error' => 'Missing required fields'], 400);
         }
-        $newUser = [
-            'id' => rand(3, 1000),
-            'name' => $data['name'],
-            'email' => $data['email']
-        ];
-        return $this->json(['message' => 'User created successfully', 'user' => $newUser], 201);
+
+        $user = new User();
+        $user->setEmail($data['email']);
+        $user->setPassword($passwordEncoder->encodePassword($user, $data['password']));
+
+        $em->persist($user);
+        $em->flush();
+
+        return $this->json(['message' => 'User created successfully'], 201);
     }
 
     #[Route('/api/users/{id}', name: 'update_user', methods: ['PUT'])]
-    public function updateUser(int $id, Request $request): JsonResponse
+    public function updateUser(int $id, Request $request, EntityManagerInterface $em): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        if (!isset($data['name']) && !isset($data['email'])) {
-            return $this->json(['error' => 'No data to update'], 400);
+        $user = $em->getRepository(User::class)->find($id);
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], 404);
         }
-        $updatedUser = [
-            'id' => $id,
-            'name' => $data['name'] ?? 'Updated Name',
-            'email' => $data['email'] ?? 'updated@example.com'
-        ];
-        return $this->json(['message' => 'User updated successfully', 'user' => $updatedUser], 200);
+
+        $data = json_decode($request->getContent(), true);
+        if (isset($data['email'])) {
+            $user->setEmail($data['email']);
+        }
+
+        $em->flush();
+        return $this->json(['message' => 'User updated successfully'], 200);
     }
 
     #[Route('/api/users/{id}', name: 'delete_user', methods: ['DELETE'])]
-    public function deleteUser(int $id): JsonResponse
+    public function deleteUser(int $id, EntityManagerInterface $em): JsonResponse
     {
-        return $this->json(['message' => 'User deleted successfully', 'id' => $id], 200);
+        $user = $em->getRepository(User::class)->find($id);
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], 404);
+        }
+
+        $em->remove($user);
+        $em->flush();
+
+        return $this->json(['message' => 'User deleted successfully'], 200);
     }
 }
