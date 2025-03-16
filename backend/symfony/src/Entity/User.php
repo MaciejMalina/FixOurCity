@@ -74,4 +74,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->email;
     }
+
+    public function eraseCredentials(): void
+    {
+        
+    }
 }
