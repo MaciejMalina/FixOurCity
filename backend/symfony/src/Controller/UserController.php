@@ -7,29 +7,33 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class UserController extends AbstractController
 {
     #[Route('/api/users', name: 'get_users', methods: ['GET'])]
-    public function getUsers(EntityManagerInterface $em): JsonResponse
+    public function getUsers(EntityManagerInterface $em, SerializerInterface $serializer): JsonResponse
     {
         $users = $em->getRepository(User::class)->findAll();
-        return $this->json($users, 200);
+        $json = $serializer->serialize($users, 'json', ['groups' => 'user:read']);
+        return new JsonResponse($json, 200, [], true);
     }
 
     #[Route('/api/users/{id}', name: 'get_user_by_id', methods: ['GET'])]
-    public function getUserById(int $id, EntityManagerInterface $em): JsonResponse
+    public function getUserById(int $id, EntityManagerInterface $em, SerializerInterface $serializer): JsonResponse
     {
         $user = $em->getRepository(User::class)->find($id);
         if (!$user) {
             return $this->json(['error' => 'User not found'], 404);
         }
-        return $this->json($user, 200);
+
+        $json = $serializer->serialize($user, 'json', ['groups' => 'user:read']);
+        return new JsonResponse($json, 200, [], true);
     }
 
     #[Route('/api/users', name: 'create_user', methods: ['POST'])]
-    public function createUser(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder): JsonResponse
+    public function createUser(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         if (!isset($data['email']) || !isset($data['password'])) {
@@ -38,7 +42,8 @@ class UserController extends AbstractController
 
         $user = new User();
         $user->setEmail($data['email']);
-        $user->setPassword($passwordEncoder->encodePassword($user, $data['password']));
+        $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
+        $user->setRoles(['ROLE_USER']);
 
         $em->persist($user);
         $em->flush();
