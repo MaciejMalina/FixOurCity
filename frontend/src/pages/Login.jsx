@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/Auth.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -33,29 +34,34 @@ export default function Login() {
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
-        {error && <p>{error}</p>}
-      </form>
-      <p>
-        Don’t have an account? <a href="/register">Register</a>
-      </p>
+    <div className="auth-container">
+      <div className="auth-box">
+        <div className="auth-logo">
+          <img src="/logo.png" alt="FixOurCity" />
+          <h1>Fix<span style={{ color: '#2a9d8f' }}>Our</span>City</h1>
+        </div>
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">Login</button>
+          {error && <p>{error}</p>}
+          <p>
+            Don’t have an account? <a href="/register">Register!</a>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }
