@@ -32,24 +32,30 @@ class UserController extends AbstractController
         return new JsonResponse($json, 200, [], true);
     }
 
-    #[Route('/api/users', name: 'create_user', methods: ['POST'])]
-    public function createUser(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): JsonResponse
+    #[Route('/api/register', name: 'register', methods: ['POST'])]
+    public function register(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+
         if (!isset($data['email']) || !isset($data['password'])) {
             return $this->json(['error' => 'Missing required fields'], 400);
+        }
+
+        $existingUser = $em->getRepository(User::class)->findOneBy(['email' => $data['email']]);
+        if ($existingUser) {
+            return $this->json(['error' => 'Email already registered'], 409);
         }
 
         $user = new User();
         $user->setEmail($data['email']);
         $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
-        $user->setRoles(['ROLE_USER']);
 
         $em->persist($user);
         $em->flush();
 
-        return $this->json(['message' => 'User created successfully'], 201);
+        return $this->json(['message' => 'User registered successfully'], 201);
     }
+
 
     #[Route('/api/users/{id}', name: 'update_user', methods: ['PUT'])]
     public function updateUser(int $id, Request $request, EntityManagerInterface $em): JsonResponse
@@ -81,4 +87,28 @@ class UserController extends AbstractController
 
         return $this->json(['message' => 'User deleted successfully'], 200);
     }
+
+    #[Route('/api/login', name: 'login', methods: ['POST'])]
+    public function login(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['email']) || !isset($data['password'])) {
+            return $this->json(['error' => 'Missing credentials'], 400);
+        }
+
+        $user = $em->getRepository(User::class)->findOneBy(['email' => $data['email']]);
+        if (!$user || !$passwordHasher->isPasswordValid($user, $data['password'])) {
+            return $this->json(['error' => 'Invalid credentials'], 401);
+        }
+
+        return $this->json([
+            'message' => 'Login successful',
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail()
+            ]
+        ], 200);
+    }
+
 }
