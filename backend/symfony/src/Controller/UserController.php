@@ -21,15 +21,18 @@ class UserController extends AbstractController
     }
 
     #[Route('/api/users/{id}', name: 'get_user_by_id', methods: ['GET'])]
-    public function getUserById(int $id, EntityManagerInterface $em, SerializerInterface $serializer): JsonResponse
+    public function getUserById(int $id, EntityManagerInterface $em): JsonResponse
     {
         $user = $em->getRepository(User::class)->find($id);
         if (!$user) {
             return $this->json(['error' => 'User not found'], 404);
         }
 
-        $json = $serializer->serialize($user, 'json', ['groups' => 'user:read']);
-        return new JsonResponse($json, 200, [], true);
+        return $this->json([
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'roles' => $user->getRoles(),
+        ], 200);
     }
 
     #[Route('/api/register', name: 'register', methods: ['POST'])]
@@ -49,6 +52,7 @@ class UserController extends AbstractController
         $user = new User();
         $user->setEmail($data['email']);
         $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
+        $user->setRoles(['ROLE_USER']);
 
         $em->persist($user);
         $em->flush();
@@ -66,11 +70,17 @@ class UserController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
+
         if (isset($data['email'])) {
             $user->setEmail($data['email']);
         }
 
+        if (isset($data['roles']) && is_array($data['roles'])) {
+            $user->setRoles($data['roles']);
+        }
+
         $em->flush();
+
         return $this->json(['message' => 'User updated successfully'], 200);
     }
 

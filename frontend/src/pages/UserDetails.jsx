@@ -33,6 +33,7 @@ function UserDetails() {
       <h2>Szczegóły użytkownika</h2>
       <p><strong>ID:</strong> {user.id}</p>
       <p><strong>Email:</strong> {user.email}</p>
+      <p><strong>Role:</strong> {user.roles.join(", ")}</p>
       <button onClick={() => navigate("/dashboard")}>Powrót</button>
     </div>
   );
