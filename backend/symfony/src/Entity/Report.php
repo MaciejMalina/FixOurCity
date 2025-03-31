@@ -3,9 +3,9 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Repository\ReportRepository;
 
-#[ORM\Entity(repositoryClass: ReportRepository::class)]
+#[ORM\Entity]
+#[ORM\Table(name: "reports")]
 class Report
 {
     #[ORM\Id]

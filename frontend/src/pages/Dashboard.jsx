@@ -40,6 +40,12 @@ export default function Dashboard() {
     <div style={{ padding: "30px" }}>
       <h2>Dashboard</h2>
       <button onClick={handleRefresh}>Odśwież dane</button>
+      <button onClick={() => navigate("/reports")} style={{ marginLeft: "10px" }}>
+        Zobacz zgłoszenia
+        </button>
+        <button onClick={() => navigate("/new-report")} style={{ marginLeft: "10px" }}>
+        Dodaj zgłoszenie
+        </button>
       <button onClick={handleLogout} style={{ marginLeft: "10px" }}>
         Wyloguj się
       </button>

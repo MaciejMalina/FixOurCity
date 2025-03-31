@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-function UserDetails() {
+export default function UserDetails() {
   const { id } = useParams();
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
@@ -38,5 +38,3 @@ function UserDetails() {
     </div>
   );
 }
-
-export default UserDetails;
