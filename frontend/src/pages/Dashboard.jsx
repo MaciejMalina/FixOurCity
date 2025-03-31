@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/Dashboard.css";
 
 export default function Dashboard() {
   const [users, setUsers] = useState([]);
@@ -37,28 +38,20 @@ export default function Dashboard() {
   };
 
   return (
-    <div style={{ padding: "30px" }}>
+    <div className="dashboard-container">
       <h2>Dashboard</h2>
-      <button onClick={handleRefresh}>Odśwież dane</button>
-      <button onClick={() => navigate("/reports")} style={{ marginLeft: "10px" }}>
-        Zobacz zgłoszenia
-        </button>
-        <button onClick={() => navigate("/new-report")} style={{ marginLeft: "10px" }}>
-        Dodaj zgłoszenie
-        </button>
-      <button onClick={handleLogout} style={{ marginLeft: "10px" }}>
-        Wyloguj się
-      </button>
+      <div className="dashboard-buttons">
+        <button onClick={handleRefresh}>Odśwież dane</button>
+        <button onClick={() => navigate("/reports")}>Zobacz zgłoszenia</button>
+        <button onClick={() => navigate("/new-report")}>Dodaj zgłoszenie</button>
+        <button onClick={handleLogout}>Wyloguj się</button>
+      </div>
       {loading ? (
-        <p>Ładowanie użytkowników...</p>
+        <p className="loading-text">Ładowanie użytkowników...</p>
       ) : (
-        <ul>
+        <ul className="user-list">
           {users.map((user) => (
-            <li
-              key={user.id}
-              style={{ cursor: "pointer", margin: "10px 0" }}
-              onClick={() => handleUserClick(user.id)}
-            >
+            <li key={user.id} onClick={() => handleUserClick(user.id)}>
               {user.email}
             </li>
           ))}
