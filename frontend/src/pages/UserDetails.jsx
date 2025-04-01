@@ -9,7 +9,12 @@ export default function UserDetails() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/users/${id}`);
+        const response = await fetch(`http://localhost:8000/api/users/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        
         if (response.ok) {
           const data = await response.json();
           setUser(data);

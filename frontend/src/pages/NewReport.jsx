@@ -16,7 +16,9 @@ export default function NewReport() {
     try {
       const response = await fetch("http://localhost:8000/api/reports", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
         body: JSON.stringify({
           title,
           content,

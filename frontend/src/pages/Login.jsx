@@ -10,25 +10,23 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-
     try {
-      const response = await fetch('http://localhost:8000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:8000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
-      const data = await response.json();
-
+  
       if (!response.ok) {
-        setError(data.error || 'Login failed');
-        return;
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed");
       }
-
-      localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/dashboard');
+  
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
     } catch (err) {
+      console.error("Login error:", err.message);
       setError(err.message);
     }
   };

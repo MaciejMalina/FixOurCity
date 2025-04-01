@@ -10,11 +10,28 @@ export default function Dashboard() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/users");
+      const response = await fetch("http://localhost:8000/api/users", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+  
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Unauthorized. Please log in again.");
+        }
+        throw new Error("Failed to fetch users.");
+      }
+  
       const data = await response.json();
       setUsers(data);
     } catch (err) {
-      console.error("Error fetching users:", err);
+      console.error("Error fetching users:", err.message);
+      setUsers([]);
+      if (err.message === "Unauthorized. Please log in again.") {
+        localStorage.removeItem("token");
+        navigate("/login");
+      }
     } finally {
       setLoading(false);
     }

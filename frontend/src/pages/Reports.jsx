@@ -9,7 +9,11 @@ export default function Reports() {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/reports");
+      const response = await fetch("http://localhost:8000/api/report", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       const data = await response.json();
       setReports(data);
     } catch (err) {
