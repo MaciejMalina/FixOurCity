@@ -1,96 +1,39 @@
 <?php
-
 namespace App\Entity;
 
+use App\Repository\ReportRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
-#[ORM\Entity]
-#[ORM\Table(name: "reports")]
+#[ORM\Entity(repositoryClass: ReportRepository::class)]
 class Report
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(length: 255)]
     private string $title;
 
     #[ORM\Column(type: 'text')]
     private string $description;
 
-    #[ORM\Column(type: 'string')]
-    private string $status = 'open';
-
-    #[ORM\Column(type: 'datetime')]
-    private \DateTime $createdAt;
-
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: false)]
-    private User $user;
+    private ?User $user = null;
+
+    #[ORM\OneToMany(mappedBy: 'report', targetEntity: Comment::class, cascade: ['remove'])]
+    private Collection $comments;
+
+    #[ORM\ManyToOne(targetEntity: ReportFilter::class, inversedBy: 'reports')]
+    private ?ReportFilter $filter = null;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
+        $this->comments = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
-
-    public function setTitle(string $title): self
-    {
-        $this->title = $title;
-        return $this;
-    }
-
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    public function setDescription(string $description): self
-    {
-        $this->description = $description;
-        return $this;
-    }
-
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): self
-    {
-        $this->status = $status;
-        return $this;
-    }
-
-    public function getCreatedAt(): \DateTime
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTime $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
-
-    public function getUser(): User
-    {
-        return $this->user;
-    }
-
-    public function setUser(User $user): self
-    {
-        $this->user = $user;
-        return $this;
-    }
+    // Gettery i settery...
 }

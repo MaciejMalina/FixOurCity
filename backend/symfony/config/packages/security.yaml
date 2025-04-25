@@ -1,35 +1,35 @@
-# config/packages/security.yaml
 security:
-  password_hashers:
-    App\Entity\User:
-      algorithm: auto
+    password_hashers:
+        App\Entity\User:
+            algorithm: auto
 
-  providers:
-    app_user_provider:
-      entity:
-        class: App\Entity\User
-        property: email
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
 
-  firewalls:
-    dev:
-      pattern: ^/(_(profiler|wdt)|css|images|js)/
-      security: false
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
 
-    login:
-      pattern: ^/api/login
-      stateless: true
-      json_login:
-        check_path: /api/login
-        username_path: email
-        password_path: password
-        success_handler: lexik_jwt_authentication.handler.authentication_success
-        failure_handler: lexik_jwt_authentication.handler.authentication_failure
+        login:
+            pattern: ^/api/login
+            stateless: true
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
-    api:
-      pattern: ^/api
-      stateless: true
-      jwt: ~
+        api:
+            pattern: ^/api
+            stateless: true
+            jwt: ~
 
-  access_control:
-    - { path: ^/api/login, roles: PUBLIC_ACCESS }
-    - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+    access_control:
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }

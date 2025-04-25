@@ -1,35 +1,39 @@
 <?php
 namespace App\Entity;
 
+use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
-#[ORM\Entity]
-#[ORM\Table(name: "users")]
+#[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
-    #[Groups(["user:read"])]
+    #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: "string", unique: true)]
-    #[Groups(["user:read", "user:write"])]
+    #[ORM\Column(length: 180, unique: true)]
     private string $email;
 
-    #[ORM\Column(type: "string")]
+    #[ORM\Column]
     private string $password;
 
-    #[ORM\Column(type: "json")]
-    #[Groups(["user:read"])]
+    #[ORM\Column(type: 'json')]
     private array $roles = [];
+
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?UserProfile $profile = null;
+
+    #[ORM\ManyToMany(targetEntity: Role::class, inversedBy: 'users')]
+    private Collection $rolesEntity;
 
     public function __construct()
     {
-        $this->roles = ['ROLE_USER'];
+        $this->rolesEntity = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -45,6 +49,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): self
     {
         $this->email = $email;
+
         return $this;
     }
 
@@ -56,27 +61,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): self
     {
         $this->password = $password;
+
         return $this;
     }
 
     public function getRoles(): array
     {
-        return $this->roles ?: ['ROLE_USER'];
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
     }
 
     public function setRoles(array $roles): self
     {
-        $this->roles = array_unique($roles);
+        $this->roles = $roles;
+
         return $this;
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Usuwanie danych wrażliwych
     }
 
     public function getUserIdentifier(): string
     {
         return $this->email;
-    }
-
-    public function eraseCredentials(): void
-    {
-        
     }
 }
