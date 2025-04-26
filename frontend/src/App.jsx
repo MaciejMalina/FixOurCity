@@ -4,6 +4,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import AdminUsers from "./pages/AdminUsers";
+import Profile from "./pages/Profile";   
 
 function App() {
   useEffect(() => {
@@ -27,14 +29,34 @@ function App() {
     <Routes>
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
-      <Route
-        path="/dashboard"
+      
+      <Route 
+        path="/dashboard" 
         element={
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>
-        }
+        } 
       />
+      
+      <Route 
+        path="/admin/users" 
+        element={
+          <ProtectedRoute>
+            <AdminUsers />
+          </ProtectedRoute>
+        } 
+      />
+
+      <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } 
+      />
+
       <Route path="*" element={<Login />} />
     </Routes>
   );

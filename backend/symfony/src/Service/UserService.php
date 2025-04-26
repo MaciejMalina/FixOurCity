@@ -27,6 +27,7 @@ class UserService
         $user->setPassword($password);
         $user->setFirstName($firstName);
         $user->setLastName($lastName);
+        $user->setRoles(['ROLE_USER']);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
