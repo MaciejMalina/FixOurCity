@@ -13,6 +13,7 @@
         "doctrine/doctrine-bundle": "*",
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": "^3.3",
+        "gesdinet/jwt-refresh-token-bundle": "*",
         "lexik/jwt-authentication-bundle": "*",
         "nelmio/cors-bundle": "*",
         "phpdocumentor/reflection-docblock": "^5.6",
