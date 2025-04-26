@@ -49,7 +49,6 @@ class UserController extends AbstractController
         ], 201);
     }
 
-    // 🔥 Nowy endpoint: LOGIN
     #[Route('/login', name: 'user_login', methods: ['POST'])]
     public function login(#[CurrentUser] ?\App\Entity\User $user): JsonResponse
     {
@@ -58,11 +57,27 @@ class UserController extends AbstractController
         }
 
         return $this->json([
-            'token' => $this->getUser()->getUserIdentifier(), // uwaga: tu normalnie generuje token JWT listener, np. LexikJWT
+            'token' => $this->getUser()->getUserIdentifier(),
         ]);
     }
 
-    // 🔥 Nowy endpoint: GET user/{id}
+    #[Route('', name: 'user_index', methods: ['GET'])]
+    public function index(): JsonResponse
+    {
+        $users = $this->userRepository->findAll();
+
+        $userArray = array_map(function($user) {
+            return [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'firstName' => $user->getFirstName(),
+                'lastName' => $user->getLastName()
+            ];
+        }, $users);
+
+        return $this->json($userArray);
+    }
+
     #[Route('/{id}', name: 'user_show', methods: ['GET'])]
     public function show(int $id): JsonResponse
     {
@@ -80,7 +95,6 @@ class UserController extends AbstractController
         ]);
     }
 
-    // 🔥 Nowy endpoint: DELETE user/{id}
     #[Route('/{id}', name: 'user_delete', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {

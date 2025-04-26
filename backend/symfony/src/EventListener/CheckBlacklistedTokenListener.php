@@ -14,14 +14,21 @@ class CheckBlacklistedTokenListener
         $this->blacklistedTokenRepository = $blacklistedTokenRepository;
     }
 
-    public function onJWTDecoded(JWTDecodedEvent $event)
+    public function onJWTDecoded(JWTDecodedEvent $event): void
     {
-        $token = $event->getToken();
-        $jwt = $event->getPayload();
+        $payload = $event->getPayload();
 
-        $rawToken = $event->getToken();
+        if (!isset($payload['token'])) {
+            return;
+        }
 
-        if ($this->blacklistedTokenRepository->findOneBy(['token' => $rawToken])) {
+        $token = $payload['token'];
+
+        $blacklisted = $this->blacklistedTokenRepository->findOneBy([
+            'token' => $token,
+        ]);
+
+        if ($blacklisted) {
             $event->markAsInvalid();
         }
     }
