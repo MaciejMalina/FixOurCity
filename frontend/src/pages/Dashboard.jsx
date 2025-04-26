@@ -49,10 +49,26 @@ export default function Dashboard() {
     navigate(`/users/${id}`);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/");
-  };
+  const handleLogout = async () => {
+    const token = localStorage.getItem("token");
+  
+    try {
+      await fetch("http://localhost:8000/api/logout", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token }),
+      });
+    } catch (err) {
+      console.error("Logout error:", err.message);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+      navigate("/login");
+    }
+  };  
 
   return (
     <div className="dashboard-container">
