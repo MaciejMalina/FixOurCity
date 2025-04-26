@@ -4,6 +4,8 @@ import "../styles/Auth.css";
 
 export default function Register() {
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState(""); // dodane
+  const [lastName, setLastName] = useState("");   // dodane
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,12 +21,17 @@ export default function Register() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/register', {
+      const response = await fetch('http://localhost:8000/api/users/register', { // zmieniony endpoint
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          'Content-Type': 'application/json', // ustawiamy Content-Type
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          firstName,
+          lastName
+        }),
       });
 
       const data = await response.json();
@@ -50,21 +57,35 @@ export default function Register() {
         <form className="auth-form" onSubmit={handleRegister}>
           <input
             type="email"
-            placeholder="email"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <input
+            type="text"
+            placeholder="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+          />
+          <input
             type="password"
-            placeholder="password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
           <input
             type="password"
-            placeholder="confirm password"
+            placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required

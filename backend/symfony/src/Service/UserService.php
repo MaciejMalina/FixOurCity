@@ -1,26 +1,35 @@
 <?php
+
 namespace App\Service;
 
 use App\Entity\User;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserService
 {
-    public function __construct(
-        private EntityManagerInterface $em,
-        private UserPasswordHasherInterface $passwordHasher
-    ) {}
+    private EntityManagerInterface $entityManager;
+    private UserRepository $userRepository;
+    private UserPasswordHasherInterface $passwordHasher;
 
-    public function register(string $email, string $password): User
+    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher)
+    {
+        $this->entityManager = $entityManager;
+        $this->userRepository = $userRepository;
+        $this->passwordHasher = $passwordHasher;
+    }
+
+    public function createUser(string $email, string $password, string $firstName, string $lastName): User
     {
         $user = new User();
         $user->setEmail($email);
-        $user->setPassword($this->passwordHasher->hashPassword($user, $password));
-        $user->setRoles(['ROLE_USER']);
+        $user->setPassword($password);
+        $user->setFirstName($firstName);
+        $user->setLastName($lastName);
 
-        $this->em->persist($user);
-        $this->em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         return $user;
     }

@@ -1,7 +1,7 @@
 security:
     password_hashers:
         App\Entity\User:
-            algorithm: auto
+            algorithm: plaintext
 
     providers:
         app_user_provider:
@@ -15,10 +15,10 @@ security:
             security: false
 
         login:
-            pattern: ^/api/login
+            pattern: ^/api/users/login
             stateless: true
             json_login:
-                check_path: /api/login
+                check_path: /api/users/login
                 username_path: email
                 password_path: password
                 success_handler: lexik_jwt_authentication.handler.authentication_success
@@ -30,6 +30,6 @@ security:
             jwt: ~
 
     access_control:
-        - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/users/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/users/register, roles: PUBLIC_ACCESS }
         - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }

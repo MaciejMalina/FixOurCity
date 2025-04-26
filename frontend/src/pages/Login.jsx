@@ -10,21 +10,23 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
-      const response = await fetch("http://localhost:8000/api/login", {
+      const response = await fetch("http://localhost:8000/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-  
+
+      const data = await response.json(); // zawsze odbierz JSON, nawet przy błędzie
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
+        throw new Error(data.message || "Login failed");
       }
-  
-      const data = await response.json();
+
       localStorage.setItem("token", data.token);
-      navigate("/dashboard");
+      navigate("/dashboard"); // Przekierowanie po poprawnym logowaniu
     } catch (err) {
       console.error("Login error:", err.message);
       setError(err.message);
@@ -41,14 +43,14 @@ export default function Login() {
         <form className="auth-form" onSubmit={handleSubmit}>
           <input
             type="email"
-            placeholder="email"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <input
             type="password"
-            placeholder="password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
