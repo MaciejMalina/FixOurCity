@@ -1,0 +1,75 @@
+.notfound-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+    font-family: 'Arvo', serif;
+    padding: 10px;
+  }
+  
+  .notfound-content {
+    text-align: center;
+  }
+  
+  .notfound-image {
+    background-image: url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 900px;
+    height: 450px;
+    margin: 0 auto;
+  }
+  
+  h1 {
+    font-size: 100px;
+    margin: 0;
+  }
+  
+  h2 {
+    font-size: 28px;
+    margin-top: 20px;
+  }
+  
+  p {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    font-size: 18px;
+  }
+  
+  .home-button {
+    text-decoration: none;
+    background-color: #2aa198;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 70px;
+    }
+  
+    .notfound-image {
+      width: 600px;
+      height: 300px;
+    }
+  
+    h2 {
+      font-size: 22px;
+    }
+  
+    p {
+      font-size: 16px;
+    }
+  
+    .home-button {
+      padding: 10px 20px;
+      font-size: 14px;
+    }
+  }
+  

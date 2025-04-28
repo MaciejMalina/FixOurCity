@@ -6,7 +6,9 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminUsers from "./pages/AdminUsers";
 import Profile from "./pages/Profile";
-import UserProfile from "./pages/UserProfile";   
+import UserProfile from "./pages/UserProfile";
+import NotFound from "./pages/NotFound";
+import InternalServerError from "./pages/InternalServerError";
 
 function App() {
   useEffect(() => {
@@ -49,7 +51,7 @@ function App() {
         } 
       />
 
-<Route 
+      <Route 
         path="/users/:id" 
         element={
           <ProtectedRoute>
@@ -57,7 +59,10 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/500" element={<InternalServerError />} />
 
+      <Route path="*" element={<NotFound />} />
+      
       <Route path="*" element={<Login />} />
     </Routes>
   );
