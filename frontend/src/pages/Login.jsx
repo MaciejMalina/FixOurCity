@@ -13,10 +13,10 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/api/users/login", {
+      const response = await fetch("http://localhost:8000/api/login_check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username: email, password }), // <- UWAGA: 'username' zamiast 'email'
       });
 
       const data = await response.json();
@@ -25,8 +25,12 @@ export default function Login() {
         throw new Error(data.message || "Login failed");
       }
 
-      localStorage.setItem("token", data.token);
-      navigate("/dashboard");
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        navigate("/dashboard");
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (err) {
       console.error("Login error:", err.message);
       setError(err.message);

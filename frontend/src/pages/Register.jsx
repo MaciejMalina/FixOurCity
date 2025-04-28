@@ -93,7 +93,7 @@ export default function Register() {
           <button type="submit">Register</button>
           {error && <p>{error}</p>}
           <p>
-            Do you have an account? <a href="/">Login!</a>
+            Do you have an account? <a href="/login">Login!</a>
           </p>
         </form>
       </div>

@@ -55,12 +55,16 @@ class UserController extends AbstractController
             return $this->json(['error' => 'Missing required fields'], 400);
         }
 
-        $user = $this->userService->createUser(
-            $data['email'],
-            $data['password'],
-            $data['firstName'],
-            $data['lastName']
-        );
+        try {
+            $user = $this->userService->createUser(
+                $data['email'],
+                $data['password'],
+                $data['firstName'],
+                $data['lastName']
+            );
+        } catch (\Exception $e) {
+            return $this->json(['error' => $e->getMessage()], $e->getCode() ?: 400);
+        }
 
         return $this->json([
             'id' => $user->getId(),
@@ -69,6 +73,7 @@ class UserController extends AbstractController
             'lastName' => $user->getLastName()
         ], 201);
     }
+
 
     #[Route('/login', name: 'user_login', methods: ['POST'])]
     #[OA\Post(
