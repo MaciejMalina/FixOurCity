@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use OpenApi\Attributes as OA;
 
 #[Route('/api/admin/users')]
 #[IsGranted('ROLE_ADMIN')]
@@ -25,6 +26,31 @@ class AdminUserManagementController extends AbstractController
     }
 
     #[Route('', name: 'admin_user_list', methods: ['GET'])]
+    #[OA\Get(
+        path: '/api/admin/users',
+        summary: 'Lista użytkowników',
+        description: 'Zwraca listę wszystkich użytkowników. Dostępne tylko dla ADMIN.',
+        tags: ['Admin Users'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Lista użytkowników',
+                content: new OA\JsonContent(
+                    type: 'array',
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: 'id', type: 'integer'),
+                            new OA\Property(property: 'email', type: 'string'),
+                            new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string')),
+                            new OA\Property(property: 'firstName', type: 'string'),
+                            new OA\Property(property: 'lastName', type: 'string'),
+                        ]
+                    )
+                )
+            ),
+            new OA\Response(response: 403, description: 'Forbidden')
+        ]
+    )]
     public function listUsers(): JsonResponse
     {
         $users = $this->userRepository->findAll();
@@ -41,6 +67,20 @@ class AdminUserManagementController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'admin_user_delete', methods: ['DELETE'])]
+    #[OA\Delete(
+        path: '/api/admin/users/{id}/delete',
+        summary: 'Usuń użytkownika',
+        description: 'Usuwa użytkownika o podanym ID. Dostępne tylko dla ADMIN.',
+        tags: ['Admin Users'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'ID użytkownika', schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Użytkownik usunięty'),
+            new OA\Response(response: 404, description: 'Użytkownik nie znaleziony'),
+            new OA\Response(response: 403, description: 'Forbidden')
+        ]
+    )]
     public function deleteUser(int $id): JsonResponse
     {
         $user = $this->userRepository->find($id);
@@ -56,6 +96,29 @@ class AdminUserManagementController extends AbstractController
     }
 
     #[Route('/{id}/role', name: 'admin_user_role_update', methods: ['PUT'])]
+    #[OA\Put(
+        path: '/api/admin/users/{id}/role',
+        summary: 'Zaktualizuj role użytkownika',
+        description: 'Zmienia przypisane role dla użytkownika. Dostępne tylko dla ADMIN.',
+        tags: ['Admin Users'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'), example: ['ROLE_USER', 'ROLE_ADMIN'])
+                ]
+            )
+        ),
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'ID użytkownika', schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Role zaktualizowane'),
+            new OA\Response(response: 400, description: 'Niepoprawne dane'),
+            new OA\Response(response: 404, description: 'Użytkownik nie znaleziony'),
+            new OA\Response(response: 403, description: 'Forbidden')
+        ]
+    )]
     public function updateUserRole(int $id, Request $request): JsonResponse
     {
         $user = $this->userRepository->find($id);

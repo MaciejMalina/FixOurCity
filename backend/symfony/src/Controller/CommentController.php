@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use OpenApi\Attributes as OA;
 
 #[Route('/api/comments')]
 class CommentController extends AbstractController
@@ -22,6 +23,44 @@ class CommentController extends AbstractController
     }
 
     #[Route('/{reportId}', name: 'comment_create', methods: ['POST'])]
+    #[OA\Post(
+        path: '/api/comments/{reportId}',
+        summary: 'Dodaj komentarz do zgłoszenia',
+        description: 'Tworzy nowy komentarz przypisany do konkretnego zgłoszenia.',
+        tags: ['Comments'],
+        parameters: [
+            new OA\Parameter(
+                name: 'reportId',
+                in: 'path',
+                required: true,
+                description: 'ID zgłoszenia, do którego przypisujemy komentarz',
+                schema: new OA\Schema(type: 'integer')
+            )
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'content', type: 'string', example: 'Treść komentarza')
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Komentarz został utworzony',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer'),
+                        new OA\Property(property: 'content', type: 'string'),
+                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time')
+                    ]
+                )
+            ),
+            new OA\Response(response: 400, description: 'Brak treści komentarza'),
+            new OA\Response(response: 404, description: 'Zgłoszenie nie znalezione')
+        ]
+    )]
     public function create(Request $request, int $reportId): JsonResponse
     {
         $report = $this->reportRepository->find($reportId);

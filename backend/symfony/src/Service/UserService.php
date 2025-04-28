@@ -22,9 +22,17 @@ class UserService
 
     public function createUser(string $email, string $password, string $firstName, string $lastName): User
     {
+        $existingUser = $this->userRepository->findOneBy(['email' => $email]);
+        if ($existingUser) {
+            throw new \Exception('User with this email already exists.', 409);
+        }
+
         $user = new User();
         $user->setEmail($email);
-        $user->setPassword($password);
+
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
+        $user->setPassword($hashedPassword);
+
         $user->setFirstName($firstName);
         $user->setLastName($lastName);
         $user->setRoles(['ROLE_USER']);
@@ -34,4 +42,5 @@ class UserService
 
         return $user;
     }
+
 }

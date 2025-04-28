@@ -6,7 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use OpenApi\Attributes as OA; // <-- Dodajemy!
+use OpenApi\Attributes as OA;
 
 #[Route('/api/admin')]
 class AdminController extends AbstractController
