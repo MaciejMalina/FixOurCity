@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -14,18 +16,32 @@ export default function Profile() {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error("Unauthorized");
+          }
+          throw new Error("Failed to fetch profile");
+        }
+
         const data = await response.json();
         setProfile(data);
       } catch (err) {
         console.error("Error fetching profile:", err.message);
+        if (err.message === "Unauthorized") {
+          localStorage.removeItem("token");
+          navigate("/login");
+        }
       }
     };
 
     fetchProfile();
-  }, []);
+  }, [navigate]);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
+    setMessage("");
+
     try {
       const response = await fetch("http://localhost:8000/api/users/change-password", {
         method: "POST",
@@ -42,12 +58,12 @@ export default function Profile() {
         throw new Error(data.error || "Failed to change password");
       }
 
-      setMessage("Password changed successfully!");
+      setMessage("✅ Password changed successfully!");
       setCurrentPassword("");
       setNewPassword("");
     } catch (err) {
       console.error("Error changing password:", err.message);
-      setMessage(err.message);
+      setMessage(`❌ ${err.message}`);
     }
   };
 
@@ -81,6 +97,7 @@ export default function Profile() {
         />
         <button type="submit">Change Password</button>
       </form>
+
       {message && <p>{message}</p>}
     </div>
   );

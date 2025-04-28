@@ -5,7 +5,8 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminUsers from "./pages/AdminUsers";
-import Profile from "./pages/Profile";   
+import Profile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";   
 
 function App() {
   useEffect(() => {
@@ -48,13 +49,13 @@ function App() {
         } 
       />
 
-      <Route 
-        path="/profile" 
+<Route 
+        path="/users/:id" 
         element={
           <ProtectedRoute>
-            <Profile />
+            <UserProfile />
           </ProtectedRoute>
-        } 
+        }
       />
 
       <Route path="*" element={<Login />} />
