@@ -19,14 +19,14 @@ export default function Login() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json(); // zawsze odbierz JSON, nawet przy błędzie
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || "Login failed");
       }
 
       localStorage.setItem("token", data.token);
-      navigate("/dashboard"); // Przekierowanie po poprawnym logowaniu
+      navigate("/dashboard");
     } catch (err) {
       console.error("Login error:", err.message);
       setError(err.message);

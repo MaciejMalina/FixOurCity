@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Loading from "../components/Loading";
 
 export default function Reports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const fetchReports = async () => {
@@ -14,10 +16,28 @@ export default function Reports() {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Unauthorized");
+        }
+        if (response.status === 403) {
+          throw new Error("Forbidden");
+        }
+        throw new Error("Failed to fetch reports");
+      }
+
       const data = await response.json();
       setReports(data);
     } catch (err) {
-      console.error("Error fetching reports:", err);
+      console.error("Error fetching reports:", err.message);
+
+      if (err.message === "Unauthorized") {
+        localStorage.removeItem("token");
+        navigate("/login");
+      } else {
+        setError(err);
+      }
     } finally {
       setLoading(false);
     }
@@ -27,6 +47,9 @@ export default function Reports() {
     fetchReports();
   }, []);
 
+  if (loading) return <Loading />;
+
+  if (error) throw error;
   return (
     <div style={{ padding: "30px" }}>
       <h2>Lista zgłoszeń</h2>
@@ -34,18 +57,14 @@ export default function Reports() {
       <button onClick={() => navigate("/dashboard")} style={{ marginLeft: "10px" }}>
         Powrót
       </button>
-      {loading ? (
-        <p>Ładowanie...</p>
-      ) : (
-        <ul>
-          {reports.map((report) => (
-            <li key={report.id}>
-              <strong>{report.title}</strong> – {report.status} <br />
-              Zgłoszone przez: {report.user} ({report.createdAt})
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul>
+        {reports.map((report) => (
+          <li key={report.id}>
+            <strong>{report.title}</strong> – {report.status} <br />
+            Zgłoszone przez: {report.user} ({report.createdAt})
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

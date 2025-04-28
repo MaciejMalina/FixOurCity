@@ -5,10 +5,11 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminUsers from "./pages/AdminUsers";
-import Profile from "./pages/Profile";
 import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 import InternalServerError from "./pages/InternalServerError";
+import Forbidden from "./components/Forbidden";
+
 
 function App() {
   useEffect(() => {
@@ -60,9 +61,8 @@ function App() {
         }
       />
       <Route path="/500" element={<InternalServerError />} />
-
+      <Route path="/forbidden" element={<Forbidden />} />
       <Route path="*" element={<NotFound />} />
-      
       <Route path="*" element={<Login />} />
     </Routes>
   );

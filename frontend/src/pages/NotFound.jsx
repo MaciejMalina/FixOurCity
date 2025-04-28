@@ -17,7 +17,6 @@ export default function NotFound() {
   return (
     <div className="notfound-container">
       <div className="notfound-content">
-        <h1>Error 404</h1>
         <div className="notfound-image" />
         <h2>Look like you're lost</h2>
         <p>The page you are looking for is not available!</p>

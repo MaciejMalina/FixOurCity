@@ -4,12 +4,14 @@ import { useNavigate } from "react-router-dom";
 export default function NewReport() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setError(null);
+    setLoading(true);
 
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -17,26 +19,38 @@ export default function NewReport() {
       const response = await fetch("http://localhost:8000/api/reports", {
         method: "POST",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
           title,
           content,
-          userId: user.id,
+          userId: user?.id,
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error || "Failed to create report");
-        return;
+        if (response.status === 401) {
+          throw new Error("Unauthorized");
+        }
+        if (response.status === 403) {
+          throw new Error("Forbidden");
+        }
+        throw new Error("Failed to create report");
       }
 
       navigate("/dashboard");
-    } catch
-    {
-        setError("Something went wrong");
+    } catch (err) {
+      console.error("Error creating report:", err.message);
+
+      if (err.message === "Unauthorized") {
+        localStorage.removeItem("token");
+        navigate("/login");
+      } else {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,7 +72,9 @@ export default function NewReport() {
           rows="5"
           required
         />
-        <button type="submit">Dodaj</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Wysyłanie..." : "Dodaj"}
+        </button>
         {error && <p style={{ color: "red" }}>{error}</p>}
       </form>
       <button onClick={() => navigate("/dashboard")} style={{ marginTop: "20px" }}>

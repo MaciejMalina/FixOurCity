@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Loading from "../components/Loading";
 
 export default function UserProfile() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -21,32 +21,33 @@ export default function UserProfile() {
           if (response.status === 401) {
             throw new Error("Unauthorized");
           }
+          if (response.status === 403) {
+            throw new Error("Forbidden");
+          }
           if (response.status === 404) {
             throw new Error("User not found");
-          } else {
-            throw new Error("Failed to fetch user");
           }
+          throw new Error("Failed to fetch user");
         }
 
         const data = await response.json();
         setUser(data);
       } catch (err) {
         console.error("Fetch user error:", err.message);
-        setError(err.message);
+        throw err;
       } finally {
         setLoading(false);
       }
     };
 
     fetchUser();
-  }, [id]);
-
-  if (error) {
-    throw new Error(error);
-  }
+  }, [id, navigate]);
 
   if (loading) return <Loading />;
-  if (!user) return <p>User not found.</p>;
+
+  if (!user) {
+    throw new Error("User not found");
+  }
 
   return (
     <div className="user-profile-page">
