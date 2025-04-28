@@ -62,15 +62,13 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     const token = localStorage.getItem("token");
-
+  
     try {
       await fetch("http://localhost:8000/api/logout", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token }),
       });
     } catch (err) {
       console.error("Logout error:", err.message);
@@ -80,6 +78,7 @@ export default function Dashboard() {
       navigate("/login");
     }
   };
+  
 
   if (loading) return <Loading />;
   

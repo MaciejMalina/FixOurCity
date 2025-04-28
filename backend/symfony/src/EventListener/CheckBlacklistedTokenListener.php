@@ -4,25 +4,36 @@ namespace App\EventListener;
 
 use App\Repository\BlacklistedTokenRepository;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTDecodedEvent;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class CheckBlacklistedTokenListener
 {
     private BlacklistedTokenRepository $blacklistedTokenRepository;
+    private RequestStack $requestStack;
 
-    public function __construct(BlacklistedTokenRepository $blacklistedTokenRepository)
-    {
+    public function __construct(
+        BlacklistedTokenRepository $blacklistedTokenRepository,
+        RequestStack $requestStack
+    ) {
         $this->blacklistedTokenRepository = $blacklistedTokenRepository;
+        $this->requestStack = $requestStack;
     }
 
     public function onJWTDecoded(JWTDecodedEvent $event): void
     {
-        $payload = $event->getPayload();
+        $request = $this->requestStack->getCurrentRequest();
 
-        if (!isset($payload['token'])) {
+        if (!$request) {
             return;
         }
 
-        $token = $payload['token'];
+        $authHeader = $request->headers->get('Authorization');
+
+        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
+            return;
+        }
+
+        $token = str_replace('Bearer ', '', $authHeader);
 
         $blacklisted = $this->blacklistedTokenRepository->findOneBy([
             'token' => $token,

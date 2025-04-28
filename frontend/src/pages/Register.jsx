@@ -21,10 +21,10 @@ export default function Register() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/users/register', { // zmieniony endpoint
+      const response = await fetch('http://localhost:8000/api/users/register', { 
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json', // ustawiamy Content-Type
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           email,
