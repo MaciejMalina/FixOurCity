@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use OpenApi\Attributes as OA; // Dodajemy!
+use OpenApi\Attributes as OA;
 
 #[Route('/api/users')]
 class UserController extends AbstractController

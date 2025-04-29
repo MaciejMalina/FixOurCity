@@ -20,26 +20,28 @@ class UserService
         $this->passwordHasher = $passwordHasher;
     }
 
-    public function createUser(string $email, string $password, string $firstName, string $lastName): User
+    public function createUser(string $email, string $plainPassword, string $firstName, string $lastName): User
     {
-        $existingUser = $this->userRepository->findOneBy(['email' => $email]);
-        if ($existingUser) {
-            throw new \Exception('User with this email already exists.', 409);
+        if (empty($email) || empty($plainPassword) || empty($firstName) || empty($lastName)) {
+            throw new \InvalidArgumentException('Missing required fields.');
         }
-
+    
+        if ($this->userRepository->findOneBy(['email' => $email])) {
+            throw new \RuntimeException('User with this email already exists.');
+        }
+    
         $user = new User();
         $user->setEmail($email);
-
-        $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
+        dump($hashedPassword);
         $user->setPassword($hashedPassword);
-
         $user->setFirstName($firstName);
         $user->setLastName($lastName);
         $user->setRoles(['ROLE_USER']);
-
+    
         $this->entityManager->persist($user);
         $this->entityManager->flush();
-
+    
         return $user;
     }
 

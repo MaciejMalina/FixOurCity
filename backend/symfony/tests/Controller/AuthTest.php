@@ -33,7 +33,6 @@ class AuthControllerTest extends WebTestCase
             'CONTENT_TYPE' => 'application/json'
         ], json_encode([
             'email' => 'test2@example.com'
-            // brak reszty
         ]));
 
         $this->assertResponseStatusCodeSame(400);
@@ -41,7 +40,6 @@ class AuthControllerTest extends WebTestCase
 
     public function testLoginSuccess()
     {
-        // Najpierw rejestrujemy, żeby użytkownik istniał
         $this->client->request('POST', '/api/users/register', [], [], [
             'CONTENT_TYPE' => 'application/json'
         ], json_encode([
@@ -51,7 +49,6 @@ class AuthControllerTest extends WebTestCase
             'lastName' => 'Doe'
         ]));
 
-        // Potem próbujemy się zalogować
         $this->client->request('POST', '/api/login_check', [], [], [
             'CONTENT_TYPE' => 'application/json'
         ], json_encode([

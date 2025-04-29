@@ -41,7 +41,7 @@ export default function Register() {
         return;
       }
 
-      navigate('/');
+      navigate('/login');
     } catch (err) {
       setError(err.message);
     }
