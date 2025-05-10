@@ -2,23 +2,44 @@
 
 namespace App\Tests\Controller;
 
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Doctrine\ORM\EntityManagerInterface;
 
 class AuthControllerTest extends WebTestCase
 {
     private $client;
+    private EntityManagerInterface $entityManager;
+    private array $createdUsers = [];
 
     protected function setUp(): void
     {
         $this->client = static::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+    }
+
+    protected function tearDown(): void
+    {
+        foreach ($this->createdUsers as $email) {
+            $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+            if ($user) {
+                $this->entityManager->remove($user);
+            }
+        }
+
+        $this->entityManager->flush();
+        parent::tearDown();
     }
 
     public function testRegisterSuccess()
     {
+        $email = 'test_' . uniqid() . '@example.com';
+        $this->createdUsers[] = $email;
+
         $this->client->request('POST', '/api/users/register', [], [], [
             'CONTENT_TYPE' => 'application/json'
         ], json_encode([
-            'email' => 'test@example.com',
+            'email' => $email,
             'password' => 'password123',
             'firstName' => 'John',
             'lastName' => 'Doe'
@@ -32,7 +53,7 @@ class AuthControllerTest extends WebTestCase
         $this->client->request('POST', '/api/users/register', [], [], [
             'CONTENT_TYPE' => 'application/json'
         ], json_encode([
-            'email' => 'test2@example.com'
+            'email' => 'test_' . uniqid() . '@example.com'
         ]));
 
         $this->assertResponseStatusCodeSame(400);
@@ -40,10 +61,13 @@ class AuthControllerTest extends WebTestCase
 
     public function testLoginSuccess()
     {
+        $email = 'testlogin_' . uniqid() . '@example.com';
+        $this->createdUsers[] = $email;
+
         $this->client->request('POST', '/api/users/register', [], [], [
             'CONTENT_TYPE' => 'application/json'
         ], json_encode([
-            'email' => 'testlogin@example.com',
+            'email' => $email,
             'password' => 'password123',
             'firstName' => 'Jane',
             'lastName' => 'Doe'
@@ -52,12 +76,14 @@ class AuthControllerTest extends WebTestCase
         $this->client->request('POST', '/api/login_check', [], [], [
             'CONTENT_TYPE' => 'application/json'
         ], json_encode([
-            'email' => 'testlogin@example.com',
+            'email' => $email,
             'password' => 'password123'
         ]));
 
         $this->assertResponseIsSuccessful();
-        $this->assertJsonContains(['token']);
+
+        $content = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('token', $content);
     }
 
     public function testLoginInvalidCredentials()
@@ -65,7 +91,7 @@ class AuthControllerTest extends WebTestCase
         $this->client->request('POST', '/api/login_check', [], [], [
             'CONTENT_TYPE' => 'application/json'
         ], json_encode([
-            'email' => 'nonexistent@example.com',
+            'email' => 'nonexistent_' . uniqid() . '@example.com',
             'password' => 'wrongpassword'
         ]));
 

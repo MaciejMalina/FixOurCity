@@ -10,7 +10,6 @@ import NotFound from "./pages/NotFound";
 import InternalServerError from "./pages/InternalServerError";
 import Forbidden from "./components/Forbidden";
 
-
 function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');

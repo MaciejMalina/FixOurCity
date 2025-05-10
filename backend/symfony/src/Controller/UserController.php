@@ -74,37 +74,6 @@ class UserController extends AbstractController
         ], 201);
     }
 
-
-    #[Route('/login', name: 'user_login', methods: ['POST'])]
-    #[OA\Post(
-        path: '/api/users/login',
-        summary: 'Logowanie użytkownika',
-        tags: ['Users'],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\JsonContent(
-                properties: [
-                    new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
-                    new OA\Property(property: 'password', type: 'string', example: 'password123')
-                ]
-            )
-        ),
-        responses: [
-            new OA\Response(response: 200, description: 'Login successful'),
-            new OA\Response(response: 401, description: 'Invalid credentials')
-        ]
-    )]
-    public function login(#[CurrentUser] ?\App\Entity\User $user): JsonResponse
-    {
-        if (!$user) {
-            return $this->json(['error' => 'Invalid credentials'], 401);
-        }
-
-        return $this->json([
-            'token' => $this->getUser()->getUserIdentifier(),
-        ]);
-    }
-
     #[Route('', name: 'user_index', methods: ['GET'])]
     #[OA\Get(
         path: '/api/users',
