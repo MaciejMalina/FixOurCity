@@ -1,0 +1,9 @@
+@echo off
+echo [✔] Uruchamianie Dockera...
+docker compose -f docker\docker-compose.yml up -d
+
+echo [✔] Backend - otwieranie nowego okna...
+start "Backend" cmd /k "cd backend && php -S 127.0.0.1:8000 -t public"
+
+echo [✔] Frontend - otwieranie nowego okna...
+start "Frontend" cmd /k "cd frontend && npm install && npm run dev"
