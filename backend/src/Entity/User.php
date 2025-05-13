@@ -124,7 +124,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void {}
 
-    // --- RELACJE ---
 
     public function getReports(): Collection
     {
@@ -159,7 +158,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->auditLogs;
     }
-    
+
     public function getFollowedReports(): Collection
     {
         return $this->followedReports;

@@ -1,0 +1,9 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: 'FixOurCity API'
+            version: '1.0.0'
+            description: 'Publiczne API systemu zgłoszeń miejskich.'
+    areas:
+        default:
+            path_patterns: [ '^/api' ]
