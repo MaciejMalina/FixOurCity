@@ -6,116 +6,114 @@ use App\Entity\Comment;
 use App\Repository\CommentRepository;
 use App\Service\CommentService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Comments')]
-#[Route('/api/comments')]
+#[Route(path: '/api/v1/comments')]
 class CommentController extends AbstractController
 {
     public function __construct(
         private CommentRepository $commentRepository,
-        private CommentService $commentService
+        private CommentService    $commentService
     ) {}
 
     #[Route('', methods: ['GET'])]
     #[OA\Get(
-        summary: 'Lista komentarzy (opcjonalnie filtrowana po reportId)',
-        tags: ['Comments'],
+        summary: 'Pobierz listę komentarzy z paginacją, filtrowaniem i sortowaniem',
         parameters: [
-            new OA\Parameter(
-                name: 'reportId',
-                in: 'query',
-                required: false,
-                schema: new OA\Schema(type: 'integer'),
-                description: 'ID zgłoszenia, aby pobrać tylko jego komentarze'
-            ),
-            new OA\Parameter(
-                name: 'page',
-                in: 'query',
-                required: false,
-                schema: new OA\Schema(type: 'integer'),
-                example: 1,
-                description: 'Numer strony (10 komentarzy na stronę)'
-            ),
+            new OA\Parameter(name: 'reportId', in: 'query', required: false, schema: new OA\Schema(type: 'integer'), description: 'ID zgłoszenia do filtrowania'),
+            new OA\Parameter(name: 'page',     in: 'query', required: false, schema: new OA\Schema(type: 'integer'), example: 1, description: 'Numer strony'),
+            new OA\Parameter(name: 'limit',    in: 'query', required: false, schema: new OA\Schema(type: 'integer'), example: 10, description: 'Liczba komentarzy na stronę'),
+            new OA\Parameter(name: 'sort',     in: 'query', required: false, schema: new OA\Schema(type: 'string'), example: 'createdAt', description: 'Pole sortowania'),
+            new OA\Parameter(name: 'order',    in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['ASC','DESC']), example: 'DESC', description: 'Kierunek sortowania'),
         ],
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'Lista komentarzy',
+                description: 'Zwraca listę komentarzy wraz z metadanymi paginacji',
                 content: new OA\JsonContent(
-                    type: 'array',
-                    items: new OA\Items(
-                        properties: [
-                            new OA\Property(property: 'id', type: 'integer'),
-                            new OA\Property(property: 'content', type: 'string'),
-                            new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        ]
-                    )
+                    type: 'object',
+                    properties: [
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(
+                            properties: [
+                                new OA\Property(property: 'id',        type: 'integer'),
+                                new OA\Property(property: 'content',   type: 'string'),
+                                new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                            ]
+                        )),
+                        new OA\Property(property: 'meta', type: 'object', properties: [
+                            new OA\Property(property: 'total', type: 'integer'),
+                            new OA\Property(property: 'page',  type: 'integer'),
+                            new OA\Property(property: 'limit', type: 'integer'),
+                        ]),
+                    ]
                 )
-            ),
+            )
         ]
     )]
     public function index(Request $request): JsonResponse
     {
         $reportId = $request->query->get('reportId');
         $page     = max(1, (int)$request->query->get('page', 1));
+        $limit    = min(100, max(1, (int)$request->query->get('limit', 10)));
+        $sort     = $request->query->get('sort', 'createdAt');
+        $order    = strtoupper($request->query->get('order', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
 
         if ($reportId) {
             $comments = $this->commentRepository->findBy(
                 ['report' => $reportId],
-                ['createdAt' => 'DESC'],
-                10,
-                ($page - 1) * 10
+                [$sort => $order],
+                $limit,
+                ($page - 1) * $limit
             );
+            $total = count($this->commentRepository->findBy(['report' => $reportId]));
         } else {
             $comments = $this->commentRepository->findBy(
                 [],
-                ['createdAt' => 'DESC'],
-                10,
-                ($page - 1) * 10
+                [$sort => $order],
+                $limit,
+                ($page - 1) * $limit
             );
+            $total = count($this->commentRepository->findAll());
         }
 
-        return $this->json(array_map(fn(Comment $c) => $this->serialize($c), $comments));
+        $data = array_map(fn(Comment $c) => $this->serialize($c), $comments);
+
+        return $this->json([
+            'data' => $data,
+            'meta' => [
+                'total' => $total,
+                'page'  => $page,
+                'limit' => $limit,
+            ],
+        ], 200);
     }
 
     #[Route('', methods: ['POST'])]
     #[OA\Post(
         summary: 'Utwórz komentarz',
-        tags: ['Comments'],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['reportId', 'content'],
+                required: ['reportId','content'],
                 properties: [
                     new OA\Property(property: 'reportId', type: 'integer', example: 42),
-                    new OA\Property(property: 'content', type: 'string', example: 'Dziękuję za szybką naprawę!')
+                    new OA\Property(property: 'content',  type: 'string',  example: 'Dziękuję za szybką naprawę!')
                 ]
             )
         ),
         responses: [
-            new OA\Response(
-                response: 201,
-                description: 'Komentarz utworzony',
-                content: new OA\JsonContent(
-                    type: 'object',
-                    properties: [
-                        new OA\Property(property: 'id', type: 'integer'),
-                        new OA\Property(property: 'content', type: 'string'),
-                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                    ]
-                )
-            ),
+            new OA\Response(response: 201, description: 'Komentarz utworzony'),
             new OA\Response(response: 400, description: 'Brak wymaganych pól')
         ]
     )]
     public function create(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        if (!isset($data['reportId'], $data['content'])) {
+        if (empty($data['reportId']) || empty($data['content'])) {
             return $this->json(['error' => 'Missing fields'], 400);
         }
 
@@ -123,18 +121,11 @@ class CommentController extends AbstractController
         return $this->json($this->serialize($comment), 201);
     }
 
-    #[Route('/{id}', methods: ['GET'])]
+    #[Route(path: '/{id}', methods: ['GET'])]
     #[OA\Get(
         summary: 'Pobierz szczegóły komentarza',
-        tags: ['Comments'],
         parameters: [
-            new OA\Parameter(
-                name: 'id',
-                in: 'path',
-                required: true,
-                schema: new OA\Schema(type: 'integer'),
-                description: 'ID komentarza'
-            )
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
         ],
         responses: [
             new OA\Response(
@@ -143,8 +134,8 @@ class CommentController extends AbstractController
                 content: new OA\JsonContent(
                     type: 'object',
                     properties: [
-                        new OA\Property(property: 'id', type: 'integer'),
-                        new OA\Property(property: 'content', type: 'string'),
+                        new OA\Property(property: 'id',        type: 'integer'),
+                        new OA\Property(property: 'content',   type: 'string'),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                     ]
                 )
@@ -155,22 +146,17 @@ class CommentController extends AbstractController
     public function show(int $id): JsonResponse
     {
         $comment = $this->commentRepository->find($id);
-        return $comment
-            ? $this->json($this->serialize($comment))
-            : $this->json(['error' => 'Not found'], 404);
+        if (!$comment) {
+            return $this->json(['error' => 'Not found'], 404);
+        }
+        return $this->json($this->serialize($comment), 200);
     }
 
-    #[Route('/{id}', methods: ['PATCH'])]
+    #[Route(path: '/{id}', methods: ['PATCH'])]
     #[OA\Patch(
         summary: 'Aktualizuj komentarz',
-        tags: ['Comments'],
         parameters: [
-            new OA\Parameter(
-                name: 'id',
-                in: 'path',
-                required: true,
-                schema: new OA\Schema(type: 'integer')
-            )
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
         ],
         requestBody: new OA\RequestBody(
             required: true,
@@ -182,44 +168,32 @@ class CommentController extends AbstractController
             )
         ),
         responses: [
-            new OA\Response(
-                response: 200,
-                description: 'Komentarz zaktualizowany',
-                content: new OA\JsonContent(
-                    type: 'object',
-                    properties: [
-                        new OA\Property(property: 'id', type: 'integer'),
-                        new OA\Property(property: 'content', type: 'string'),
-                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                    ]
-                )
-            ),
+            new OA\Response(response: 200, description: 'Komentarz zaktualizowany'),
+            new OA\Response(response: 400, description: 'Brak danych'),
             new OA\Response(response: 404, description: 'Komentarz nie znaleziony')
         ]
     )]
     public function update(int $id, Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
         $comment = $this->commentRepository->find($id);
         if (!$comment) {
             return $this->json(['error' => 'Not found'], 404);
         }
 
+        $data = json_decode($request->getContent(), true);
+        if (empty($data['content'])) {
+            return $this->json(['error' => 'No data provided'], 400);
+        }
+
         $updated = $this->commentService->update($comment, $data);
-        return $this->json($this->serialize($updated));
+        return $this->json($this->serialize($updated), 200);
     }
 
-    #[Route('/{id}', methods: ['DELETE'])]
+    #[Route(path: '/{id}', methods: ['DELETE'])]
     #[OA\Delete(
         summary: 'Usuń komentarz',
-        tags: ['Comments'],
         parameters: [
-            new OA\Parameter(
-                name: 'id',
-                in: 'path',
-                required: true,
-                schema: new OA\Schema(type: 'integer')
-            )
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
         ],
         responses: [
             new OA\Response(response: 204, description: 'Komentarz usunięty'),
