@@ -1,0 +1,73 @@
+.dashboard {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.dashboard__sidebar {
+  width: 260px;
+  background: #2a9d8f;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  color: #fff;
+}
+
+.dashboard__sidebar .logo {
+  text-align: center;
+  margin-bottom: 30px;
+  cursor: pointer;
+}
+.dashboard__sidebar .logo img {
+  max-width: 100%;
+  height: auto;
+}
+
+.dashboard__sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dashboard__sidebar nav > ul > li {
+  margin-bottom: 20px;
+  cursor: pointer;
+  font-size: 1.1em;
+}
+.dashboard__sidebar .dashboard__recent {
+  list-style: none;
+  padding-left: 1em;
+  margin-top: 5px;
+  font-size: 0.9em;
+}
+.dashboard__sidebar .dashboard__recent li {
+  margin: 4px 0;
+  cursor: pointer;
+}
+.dashboard__sidebar nav li:hover,
+.dashboard__sidebar .dashboard__recent li:hover {
+  text-decoration: underline;
+}
+
+.dashboard__logout {
+  margin-top: auto;
+  background: #e76f51;
+  border: none;
+  color: #fff;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.dashboard__logout:hover {
+  background: #d65a3c;
+}
+
+.dashboard__map {
+  flex: 1;
+  position: relative;
+}
+
+.dashboard-error {
+  padding: 2rem;
+  color: red;
+  text-align: center;
+}
