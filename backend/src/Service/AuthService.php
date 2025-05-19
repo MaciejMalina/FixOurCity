@@ -38,43 +38,44 @@ class AuthService
 
     public function login(array $credentials): JsonResponse
     {
-        // 1) Weryfikacja
+        // 1) weryfikacja
         $user = $this->em->getRepository(User::class)
-                         ->findOneBy(['email' => $credentials['email']]);
+                        ->findOneBy(['email' => $credentials['email']]);
         if (!$user || !$this->hasher->isPasswordValid($user, $credentials['password'])) {
             return new JsonResponse(['error' => 'Invalid credentials'], 401);
         }
 
-        // 2) Access token + cookie
+        // 2) access token + ciasteczko
         $accessToken = $this->jwtManager->create($user);
         $accessCookie = Cookie::create('ACCESS_TOKEN')
             ->withValue($accessToken)
             ->withHttpOnly(true)
-            ->withSecure(true)
+            ->withSecure(false)    // na lokalnym dev możesz dać false
             ->withSameSite('lax')
             ->withPath('/')
             ->withExpires((new \DateTimeImmutable())->modify('+1 hour'));
 
-        // 3) Refresh token + cookie
+        // 3) refresh token + ciasteczko
         $refreshTokenValue = bin2hex(random_bytes(32));
-        $refreshExpires = new \DateTimeImmutable('+7 days');
-        $refreshToken = new RefreshToken($user, $refreshTokenValue, $refreshExpires);
+        $refreshExpires     = new \DateTimeImmutable('+7 days');
+        $refreshToken       = new RefreshToken($user, $refreshTokenValue, $refreshExpires);
         $this->em->persist($refreshToken);
         $this->em->flush();
 
         $refreshCookie = Cookie::create('REFRESH_TOKEN')
             ->withValue($refreshTokenValue)
             ->withHttpOnly(true)
-            ->withSecure(true)
+            ->withSecure(false)    // na lokalnym dev możesz dać false
             ->withSameSite('lax')
             ->withPath('/')
             ->withExpires($refreshExpires);
 
-        // 4) Odpowiedź
+        // 4) zbuduj odpowiedź Z JSON + ciasteczka
         $resp = new JsonResponse(['token' => $accessToken], 200);
-        return $resp
-            ->headers->setCookie($accessCookie)
-            ->headers->setCookie($refreshCookie);
+        $resp->headers->setCookie($accessCookie);
+        $resp->headers->setCookie($refreshCookie);
+
+        return $resp;
     }
 
     public function refresh(Request $request): JsonResponse

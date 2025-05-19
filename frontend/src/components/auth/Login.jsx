@@ -17,9 +17,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await login({ email, password });
-
-      const data = await response.json().catch(() => ({}));
+      const data = await login({ email, password });
       if (data.token) {
         localStorage.setItem("token", data.token);
       }

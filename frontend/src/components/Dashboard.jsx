@@ -30,7 +30,10 @@ export default function Dashboard() {
       try {
         const res = await fetch(
           'http://localhost:8000/api/v1/reports?page=1&limit=5', 
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+          }
         );
         if (!res.ok) throw new Error(`Fetch error ${res.status}`);
         const { data } = await res.json();
