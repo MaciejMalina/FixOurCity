@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Witamy w FixOurCity!</title>
+  </head>
+  <body>
+    <h1>Witaj {{ firstName }} {{ lastName }}!</h1>
+
+    <p>Dziękujemy za rejestrację w serwisie <strong>FixOurCity</strong>.</p>
+
+    <p>
+      Aby zacząć, możesz przejść na stronę główną:
+      <a href="{{ url('app_home') }}">FixOurCity</a>
+    </p>
+
+    <hr>
+    <p style="font-size:.8em;color:#666">
+      FixOurCity &copy; {{ "now"|date("Y") }}. Wszelkie prawa zastrzeżone.
+    </p>
+  </body>
+</html>

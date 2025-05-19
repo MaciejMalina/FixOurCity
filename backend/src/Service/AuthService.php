@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Entity\RefreshToken;
 use App\Entity\BlacklistedToken;
+use App\Message\SendWelcomeEmailMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,6 +13,7 @@ use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use App\Repository\RefreshTokenRepository;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class AuthService
 {
@@ -19,7 +21,8 @@ class AuthService
         private EntityManagerInterface $em,
         private UserPasswordHasherInterface $hasher,
         private JWTTokenManagerInterface $jwtManager,
-        private RefreshTokenRepository $rtRepo
+        private RefreshTokenRepository $rtRepo,
+        private MessageBusInterface $bus
     ) {}
 
     public function register(array $data): User
@@ -33,6 +36,7 @@ class AuthService
 
         $this->em->persist($user);
         $this->em->flush();
+        $this->bus->dispatch(new SendWelcomeEmailMessage($user->getEmail()));
         return $user;
     }
 
