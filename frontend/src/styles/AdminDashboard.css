@@ -1,0 +1,25 @@
+
+.admin {
+  display: flex;
+  min-height: 100vh;
+}
+.admin__sidebar {
+  width: 200px;
+  background:#f5f5f5;
+  display:flex; flex-direction:column;
+}
+.admin__sidebar button {
+  padding:1rem; border:none; background:none; text-align:left;
+}
+.admin__sidebar .active {
+  background:#2a9d8f; color:white;
+}
+.admin__content {
+  flex:1;
+  padding:1rem;
+}
+
+@media (max-width:768px){
+  .admin { flex-direction:column; }
+  .admin__sidebar { flex-direction:row; width:100%; }
+}
