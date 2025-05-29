@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { createReport } from '../api/reports';
-import Loading      from './ui/Loading';
-import ErrorMessage from './ui/ErrorMessage';
-import '../styles/ReportForm.css';
+import { createReport } from '../../api/reports';
+import Loading      from '../ui/Loading';
+import ErrorMessage from '../ui/ErrorMessage';
+import '../../styles/ReportForm.css';
 
 export default function ReportForm({ onSuccess }) {
   const [title, setTitle] = useState('');

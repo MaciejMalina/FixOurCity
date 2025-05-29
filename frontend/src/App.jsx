@@ -21,10 +21,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import Login           from './components/auth/Login';
 import Register        from './components/auth/Register';
-import Dashboard       from './components/Dashboard';
-import ReportsList     from './components/reports/ReportsList';
+import Dashboard       from './components/dashboards/Dashboard';
+import AdminDashboard  from './components/dashboards/AdminDashboard';
+import ReportsList     from './components/reports/ReportList';
 import ReportForm      from './components/reports/ReportForm';
-import AdminDashboard  from './components/admin/AdminDashboard';
 import NotFound        from './components/NotFound';
 import AccessDenied    from './components/AccessDenied';
 

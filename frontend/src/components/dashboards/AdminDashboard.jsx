@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import ReportsList from './ReportList';
-import ReportForm    from './ReportForm';
-import '../styles/AdminDashboard.css';
+import ReportsList from '../reports/ReportList';
+import ReportForm    from '../reports/ReportForm';
+import '../../styles/AdminDashboard.css';
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState('list');
