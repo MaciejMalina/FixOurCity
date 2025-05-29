@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchReports } from '../api/reports';
 import Loading      from './ui/Loading';
 import ErrorMessage from './ui/ErrorMessage';
-import '../styles/ReportsList.css';
+import '../styles/ReportList.css';
 
 export default function ReportsList() {
   const [reports, setReports] = useState([]);

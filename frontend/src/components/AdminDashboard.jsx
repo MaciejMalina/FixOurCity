@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ReportsList from './ReportsList';
+import ReportsList from './ReportList';
 import ReportForm    from './ReportForm';
 import '../styles/AdminDashboard.css';
 
