@@ -29,10 +29,6 @@ class ReportService
         return $report;
     }
 
-    /**
-     * Aktualizuje dowolne pola zgłoszenia: title, description,
-     * status (po ID), category (po ID) oraz listę tagów (tablica ID).
-     */
     public function updateReport(Report $report, array $data): Report
     {
         if (isset($data['title'])) {
@@ -43,7 +39,6 @@ class ReportService
             $report->setDescription($data['description']);
         }
 
-        // Zmiana statusu po przekazanym statusId
         if (isset($data['statusId'])) {
             $status = $this->statusRepo->find($data['statusId']);
             if ($status) {
@@ -51,7 +46,6 @@ class ReportService
             }
         }
 
-        // Zmiana kategorii po przekazanym categoryId
         if (isset($data['categoryId'])) {
             $category = $this->categoryRepo->find($data['categoryId']);
             if ($category) {
@@ -59,13 +53,10 @@ class ReportService
             }
         }
 
-        // Zmiana tagów — oczekujemy tablicy tagId w $data['tags']
         if (isset($data['tags']) && is_array($data['tags'])) {
-            // Usuń wszystkie poprzednie powiązania
             foreach ($report->getTags() as $oldTag) {
                 $report->removeTag($oldTag);
             }
-            // Dodaj nowe
             foreach ($data['tags'] as $tagId) {
                 $tag = $this->tagRepo->find($tagId);
                 if ($tag) {

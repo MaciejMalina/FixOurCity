@@ -33,16 +33,41 @@ class BlacklistedToken
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getToken(): string { return $this->token; }
-    public function setToken(string $token): self { $this->token = $token; return $this; }
+    public function getToken(): string
+    {
+        return $this->token;
+    }
+    public function setToken(string $token): self
+    {
+        $this->token = $token; return $this;
+    }
 
-    public function getExpiredAt(): \DateTimeImmutable { return $this->expiredAt; }
-    public function setExpiredAt(\DateTimeImmutable $expiredAt): self { $this->expiredAt = $expiredAt; return $this; }
+    public function getExpiredAt(): \DateTimeImmutable
+    {
+        return $this->expiredAt;
+    }
+    public function setExpiredAt(\DateTimeImmutable $expiredAt): self
+    {
+        $this->expiredAt = $expiredAt; return $this;
+    }
 
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
 
-    public function getUser(): ?User { return $this->user; }
-    public function setUser(?User $user): self { $this->user = $user; return $this; }
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
 }

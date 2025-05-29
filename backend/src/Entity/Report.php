@@ -64,32 +64,90 @@ class Report
         $this->followers = new ArrayCollection();
     }
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getTitle(): string { return $this->title; }
-    public function setTitle(string $title): self { $this->title = $title; return $this; }
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+    public function setTitle(string $title): self
+    {
+        $this->title = $title;
+        return $this;
+    }
 
-    public function getDescription(): string { return $this->description; }
-    public function setDescription(string $description): self { $this->description = $description; return $this; }
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+    public function setDescription(string $description): self
+    {
+        $this->description = $description;
+        return $this;
+    }
 
-    public function getLat(): float { return $this->lat; }
-    public function setLat(float $lat): self { $this->lat = $lat; return $this; }
+    public function getLat(): float
+    {
+        return $this->lat;
+    }
+    public function setLat(float $lat): self
+    {
+        $this->lat = $lat;
+        return $this;
+    }
 
-    public function getLng(): float { return $this->lng; }
-    public function setLng(float $lng): self { $this->lng = $lng; return $this; }
+    public function getLng(): float
+    {
+        return $this->lng;
+    }
+    public function setLng(float $lng): self
+    {
+        $this->lng = $lng;
+        return $this;
+    }
 
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
 
-    public function getUser(): ?User { return $this->user; }
-    public function setUser(?User $user): self { $this->user = $user; return $this; }
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
 
-    public function getStatus(): ?Status { return $this->status; }
-    public function setStatus(?Status $status): self { $this->status = $status; return $this; }
+    public function getStatus(): ?Status
+    {
+        return $this->status;
+    }
+    public function setStatus(?Status $status): self
+    {
+        $this->status = $status;
+        return $this;
+    }
 
-    public function getCategory(): ?Category { return $this->category; }
-    public function setCategory(?Category $category): self { $this->category = $category; return $this; }
+    public function getCategory(): ?Category
+    {
+        return $this->category;
+    }
+    public function setCategory(?Category $category): self
+    {
+        $this->category = $category;
+        return $this;
+    }
 
-    public function getTags(): Collection { return $this->tags; }
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
     public function addTag(Tag $tag): self
     {
         if (!$this->tags->contains($tag)) {
@@ -103,8 +161,14 @@ class Report
         return $this;
     }
 
-    public function getComments(): Collection { return $this->comments; }
-    public function getImages(): Collection { return $this->images; }
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+    public function getImages(): Collection
+    {
+        return $this->images;
+    }
     public function getFollowers(): Collection
     {
         return $this->followers;

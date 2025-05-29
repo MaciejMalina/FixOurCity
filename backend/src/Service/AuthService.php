@@ -42,24 +42,21 @@ class AuthService
 
     public function login(array $credentials): JsonResponse
     {
-        // 1) weryfikacja
         $user = $this->em->getRepository(User::class)
                         ->findOneBy(['email' => $credentials['email']]);
         if (!$user || !$this->hasher->isPasswordValid($user, $credentials['password'])) {
             return new JsonResponse(['error' => 'Invalid credentials'], 401);
         }
 
-        // 2) access token + ciasteczko
         $accessToken = $this->jwtManager->create($user);
         $accessCookie = Cookie::create('ACCESS_TOKEN')
             ->withValue($accessToken)
             ->withHttpOnly(true)
-            ->withSecure(false)    // na lokalnym dev możesz dać false
+            ->withSecure(false)
             ->withSameSite('lax')
             ->withPath('/')
             ->withExpires((new \DateTimeImmutable())->modify('+1 hour'));
 
-        // 3) refresh token + ciasteczko
         $refreshTokenValue = bin2hex(random_bytes(32));
         $refreshExpires     = new \DateTimeImmutable('+7 days');
         $refreshToken       = new RefreshToken($user, $refreshTokenValue, $refreshExpires);
@@ -69,12 +66,11 @@ class AuthService
         $refreshCookie = Cookie::create('REFRESH_TOKEN')
             ->withValue($refreshTokenValue)
             ->withHttpOnly(true)
-            ->withSecure(false)    // na lokalnym dev możesz dać false
+            ->withSecure(false)
             ->withSameSite('lax')
             ->withPath('/')
             ->withExpires($refreshExpires);
 
-        // 4) zbuduj odpowiedź Z JSON + ciasteczka
         $resp = new JsonResponse(['token' => $accessToken], 200);
         $resp->headers->setCookie($accessCookie);
         $resp->headers->setCookie($refreshCookie);
@@ -90,10 +86,8 @@ class AuthService
             return new JsonResponse(['error' => 'Invalid or expired refresh token'], 401);
         }
 
-        // 1) Revoke starego refresh
         $this->rtRepo->revoke($rt);
 
-        // 2) Nowy access token
         $user = $rt->getUser();
         $accessToken = $this->jwtManager->create($user);
         $accessCookie = Cookie::create('ACCESS_TOKEN')
@@ -104,7 +98,6 @@ class AuthService
             ->withPath('/')
             ->withExpires((new \DateTimeImmutable())->modify('+1 hour'));
 
-        // 3) Nowy refresh token
         $newValue = bin2hex(random_bytes(32));
         $newExpires = new \DateTimeImmutable('+7 days');
         $newRt = new RefreshToken($user, $newValue, $newExpires);
@@ -119,7 +112,6 @@ class AuthService
             ->withPath('/')
             ->withExpires($newExpires);
 
-        // 4) Odpowiedź
         $resp = new JsonResponse(['token' => $accessToken], 200);
         return $resp
             ->headers->setCookie($accessCookie)
@@ -128,14 +120,11 @@ class AuthService
 
     public function logout(Request $request): JsonResponse
     {
-        // 1) Revoke refresh token
         $refreshValue = $request->cookies->get('REFRESH_TOKEN');
         if ($rt = $this->rtRepo->findValid($refreshValue)) {
             $this->rtRepo->revoke($rt);
         }
 
-        // 2) Blacklist access token
-        // Spróbuj pobrać z ciasteczka, a jeśli nie, to z nagłówka Authorization
         $accessValue = $request->cookies->get('ACCESS_TOKEN')
             ?: str_replace('Bearer ', '', $request->headers->get('Authorization', ''));
 
@@ -143,15 +132,13 @@ class AuthService
             $black = new BlacklistedToken();
             $black
                 ->setToken($accessValue)
-                ->setExpiredAt((new \DateTimeImmutable())->modify('+1 hour')) // czas życia access tokena
-                ->setUser($this->getUser()); // przypisz zalogowanego użytkownika
-
+                ->setExpiredAt((new \DateTimeImmutable())->modify('+1 hour'))
+                ->setUser($this->getUser());
             $this->em->persist($black);
         }
 
         $this->em->flush();
 
-        // 3) Usuń ciasteczka po stronie klienta
         $removeAccess  = Cookie::create('ACCESS_TOKEN')
             ->withValue('')
             ->withExpires(new \DateTimeImmutable('-1 hour'))

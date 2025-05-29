@@ -37,19 +37,53 @@ class AuditLog
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getAction(): string { return $this->action; }
-    public function setAction(string $action): self { $this->action = $action; return $this; }
+    public function getAction(): string
+    {
+        return $this->action;
+    }
+    public function setAction(string $action): self
+    {
+        $this->action = $action;
+        return $this;
+    }
 
-    public function getTargetType(): string { return $this->targetType; }
-    public function setTargetType(string $targetType): self { $this->targetType = $targetType; return $this; }
+    public function getTargetType(): string
+    {
+        return $this->targetType;
+    }
+    public function setTargetType(string $targetType): self
+    {
+        $this->targetType = $targetType;
+        return $this;
+    }
 
-    public function getTargetId(): int { return $this->targetId; }
-    public function setTargetId(int $targetId): self { $this->targetId = $targetId; return $this; }
+    public function getTargetId(): int
+    {
+        return $this->targetId;
+    }
+    public function setTargetId(int $targetId): self
+    {
+        $this->targetId = $targetId;
+        return $this;
+    }
 
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
 
-    public function getUser(): ?User { return $this->user; }
-    public function setUser(?User $user): self { $this->user = $user; return $this; }
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
 }

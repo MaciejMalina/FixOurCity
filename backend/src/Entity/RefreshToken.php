@@ -29,7 +29,16 @@ class RefreshToken
         $this->expiresAt = $expiresAt;
     }
 
-    public function getToken(): string       { return $this->token; }
-    public function getUser(): User         { return $this->user; }
-    public function getExpiresAt(): \DateTimeImmutable { return $this->expiresAt; }
+    public function getToken(): string
+    {
+        return $this->token;
+    }
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+    public function getExpiresAt(): \DateTimeImmutable
+    {
+        return $this->expiresAt;
+    }
 }

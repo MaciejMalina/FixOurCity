@@ -27,11 +27,21 @@ class Tag
     {
         $this->reports = new ArrayCollection();
     }
-
-    public function getId(): ?int { return $this->id; }
-
-    public function getName(): string { return $this->name; }
-    public function setName(string $name): self { $this->name = $name; return $this; }
-
-    public function getReports(): Collection { return $this->reports; }
+    public function getId(): ?int 
+    {
+        return $this->id;
+    }
+    public function getName(): string 
+    {
+        return $this->name;
+    }
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
+    public function getReports(): Collection
+    {
+        return $this->reports;
+    }
 }

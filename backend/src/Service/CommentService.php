@@ -64,9 +64,6 @@ class CommentService
         return $comment;
     }
 
-    /**
-     * Usuwa komentarz.
-     */
     public function delete(Comment $comment): void
     {
         $this->em->remove($comment);

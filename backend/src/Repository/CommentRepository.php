@@ -57,9 +57,6 @@ class CommentRepository extends ServiceEntityRepository
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 
-    /**
-     * Stary helper do pobrania wszystkich komentarzy dla jednego raportu.
-     */
     public function findByReportId(int $reportId): array
     {
         return $this->createQueryBuilder('c')
