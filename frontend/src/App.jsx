@@ -6,6 +6,7 @@ import Dashboard       from './components/dashboards/Dashboard';
 import AdminDashboard  from './components/dashboards/AdminDashboard';
 import ReportsList     from './components/reports/ReportList';
 import ReportForm      from './components/reports/ReportForm';
+import ReportDetails   from './components/reports/ReportDetails';
 import NotFound        from './components/NotFound';
 import AccessDenied    from './components/AccessDenied';
 
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/reports"   element={<PrivateRoute><ReportsList/></PrivateRoute>} />
         <Route path="/new-report"element={<PrivateRoute><ReportForm/></PrivateRoute>} />
         <Route path="/admin"     element={<PrivateRoute><AdminDashboard/></PrivateRoute>} />
+        <Route path="/reports/:id" element={<PrivateRoute><ReportDetails/></PrivateRoute>} />
 
         <Route path="/access-denied" element={<AccessDenied />} />
         <Route path="*"              element={<NotFound />} />

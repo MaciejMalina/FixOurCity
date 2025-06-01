@@ -6,7 +6,7 @@ export default function NotFound() {
       status="404"
       title="Strona nie istnieje"
       message="Sprawdź adres lub wróć do strony głównej."
-      backTo="/"
+      backTo="/dashboard"
     />
   );
 }
