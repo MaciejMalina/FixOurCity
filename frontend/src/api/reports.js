@@ -1,25 +1,30 @@
-const API = 'http://localhost:8000/api/v1';
+const API = "http://localhost:8000/api/v1";
 
 export async function fetchReports({ page = 1, limit = 20 } = {}) {
   const resp = await fetch(`${API}/reports?page=${page}&limit=${limit}`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      Accept: "application/json"
+    },
+    credentials: "include"
   });
-  if (!resp.ok) throw new Error(`Fetch error ${resp.status}`);
-  return resp.json(); // { data: [ ... ], meta: { total, page, limit } }
+  if (!resp.ok) throw new Error(`Błąd pobierania zgłoszeń (${resp.status})`);
+  return resp.json();
 }
 
 export async function createReport(payload) {
   const resp = await fetch(`${API}/reports`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify(payload),
+    credentials: "include",
+    body: JSON.stringify(payload)
   });
   if (!resp.ok) {
     const { error } = await resp.json().catch(() => ({}));
-    throw new Error(error || `Create failed ${resp.status}`);
+    throw new Error(error || `Błąd dodawania zgłoszenia (${resp.status})`);
   }
   return resp.json();
 }

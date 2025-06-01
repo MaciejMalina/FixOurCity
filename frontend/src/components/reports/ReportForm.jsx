@@ -1,10 +1,10 @@
 // frontend/src/components/ReportForm.jsx
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import "../../styles/ReportForm.css"; // <- importujemy osobny plik CSS
+import "../../styles/ReportForm.css";
 
 // Konfiguracja ikon Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -29,31 +29,28 @@ function LocationSelector({ position, setPosition }) {
   return position ? <Marker position={position} /> : null;
 }
 
-export default function ReportForm() {
+export default function ReportForm({ onSuccess }) {
   // -- STANY FORMULARZA --
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState([]); // pobrane z backendu
-  const [statuses, setStatuses] = useState([]);     // pobrane z backendu
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedStatus, setSelectedStatus]     = useState("");
-
-  const [imageFile, setImageFile]       = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [position, setPosition]         = useState(null);
+  const [position, setPosition] = useState([50.06465, 19.94498]);
 
-  const [submitting, setSubmitting]   = useState(false);
-  const [error, setError]             = useState(null);
-  const [successMsg, setSuccessMsg]   = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
 
   const fileInputRef = useRef();
 
-  // **PO ZAMONTOWANIU**: pobieramy kategorie i statusy
+  // **PO ZAMONTOWANIU**: pobieramy kategorie
   useEffect(() => {
     // --- POBIERANIE KATEGORII ---
     fetch("/api/v1/categories?page=1&limit=100")
       .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) throw new Error("Błąd pobierania kategorii");
         return res.json();
       })
       .then((data) => {
@@ -62,21 +59,7 @@ export default function ReportForm() {
           setSelectedCategory(data.data[0].id.toString());
         }
       })
-      .catch(() => console.warn("Nie udało się pobrać kategorii"));
-
-    // --- POBIERANIE STATUSÓW ---
-    fetch("/api/v1/statuses?page=1&limit=100")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        setStatuses(data.data);
-        if (data.data.length > 0) {
-          setSelectedStatus(data.data[0].id.toString());
-        }
-      })
-      .catch(() => console.warn("Nie udało się pobrać statusów"));
+      .catch(() => setError("Nie udało się pobrać kategorii"));
   }, []);
 
   // Obsługa zmiany pliku (zapis pliku + generowanie podglądu)
@@ -97,35 +80,23 @@ export default function ReportForm() {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
-
-    // --- WALIDACJA ---
-    if (!title.trim() || !description.trim()) {
-      setError("Tytuł i opis są wymagane.");
-      return;
-    }
-    if (!selectedCategory) {
-      setError("Proszę wybrać kategorię.");
-      return;
-    }
-    if (!selectedStatus) {
-      setError("Proszę wybrać status.");
-      return;
-    }
-    if (!position) {
-      setError("Proszę wskazać lokalizację na mapie.");
-      return;
-    }
-
     setSubmitting(true);
+
+    if (!title || !description || !selectedCategory || !position) {
+      setError("Wszystkie pola są wymagane.");
+      setSubmitting(false);
+      return;
+    }
+
     try {
       // 1) Tworzymy raport
       const reportPayload = {
-        title:       title.trim(),
+        title: title.trim(),
         description: description.trim(),
-        categoryId:  parseInt(selectedCategory, 10),
-        statusId:    parseInt(selectedStatus, 10),
-        latitude:    position[0],
-        longitude:   position[1],
+        categoryId: parseInt(selectedCategory, 10),
+        statusId: 1, // Domyślny status "Nowe"
+        latitude: position[0],
+        longitude: position[1],
       };
       const reportRes = await fetch("/api/v1/reports", {
         method: "POST",
@@ -137,7 +108,8 @@ export default function ReportForm() {
         try {
           const data = await reportRes.json();
           if (data.error) errMsg = data.error;
-        } catch {}
+        } catch { //
+          }
         throw new Error(errMsg);
       }
       const createdReport = await reportRes.json();
@@ -167,10 +139,10 @@ export default function ReportForm() {
       setDescription("");
       setImageFile(null);
       setImagePreview(null);
-      setPosition(null);
+      setPosition([50.06465, 19.94498]);
       fileInputRef.current.value = "";
       if (categories.length > 0) setSelectedCategory(categories[0].id.toString());
-      if (statuses.length > 0) setSelectedStatus(statuses[0].id.toString());
+      if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -203,28 +175,13 @@ export default function ReportForm() {
               />
             ) : (
               <div className="upload-placeholder">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  width="48"
-                  height="48"
-                  className="upload-icon"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 16v1a1 1 0 001 1h3m10-2v1a1 1 0 001 1h3m0-4V6a2 2 0 00-2-2H5a2 2 0 00-2 2v8m16 0H4m5-4l3-3 3 3m-3-3v12"
-                  />
-                </svg>
-                <p className="upload-text">Załącz zdjęcie</p>
+                <span className="upload-icon" role="img" aria-label="upload">⬆️</span>
+                <div className="upload-text">Załącz zdjęcie</div>
               </div>
             )}
           </div>
 
-          {/* --- prawa kolumna: opis, tytuł, opis, kategoria, status --- */}
+          {/* --- prawa kolumna: opis, tytuł, opis, kategoria --- */}
           <div className="description-box">
             <h3 className="description-heading">Opis</h3>
             <p className="description-text">
@@ -267,28 +224,12 @@ export default function ReportForm() {
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="field-select"
+                required
               >
                 <option value="">-- Wybierz kategorię --</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id.toString()}>
                     {c.name}
-                  </option>
-                ))}
-              </select>
-
-              <label htmlFor="status" className="field-label">
-                Status:
-              </label>
-              <select
-                id="status"
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="field-select"
-              >
-                <option value="">-- Wybierz status --</option>
-                {statuses.map((s) => (
-                  <option key={s.id} value={s.id.toString()}>
-                    {s.label}
                   </option>
                 ))}
               </select>
@@ -299,7 +240,7 @@ export default function ReportForm() {
         {/* ----------------- MAPA ----------------- */}
         <div className="map-wrapper">
           <MapContainer
-            center={[50.06465, 19.94498]}
+            center={position}
             zoom={13}
             className="leaflet-map"
           >

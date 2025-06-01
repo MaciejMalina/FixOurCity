@@ -1,12 +1,17 @@
 .reports-list {
-  list-style:none;
-  padding:0;
+  list-style: none;
+  padding: 0;
 }
 .reports-list li {
-  padding:1rem;
-  border-bottom:1px solid #ddd;
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
 }
-
-@media (max-width:480px){
-  .reports-list li { font-size:0.9rem; }
+.error-text {
+  color: crimson;
+  margin-bottom: 12px;
+  text-align: center;
+  font-weight: bold;
+}
+@media (max-width: 480px) {
+  .reports-list li { font-size: 0.9rem; }
 }

@@ -29,15 +29,22 @@ export default function Dashboard() {
       setLoading(true);
       try {
         const res = await fetch(
-          'http://localhost:8000/api/v1/reports?page=1&limit=5', 
+          '/api/v1/reports?page=1&limit=1000',
           {
             credentials: 'include',
-            headers: { 'Accept': 'application/json' }
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
           }
         );
         if (!res.ok) throw new Error(`Fetch error ${res.status}`);
         const { data } = await res.json();
-        setReports(data);
+        // Filtrowanie po statusie
+        const filtered = data.filter(r =>
+          r.status?.label === "Nowe" || r.status?.label === "W trakcie realizacji"
+        );
+        setReports(filtered);
       } catch (e) {
         console.error('Fetch reports error:', e);
         setError(e);
@@ -104,10 +111,10 @@ export default function Dashboard() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {reports.map(r => (
-            r.location && (
+            r.latitude && r.longitude && (
               <Marker
                 key={r.id}
-                position={[r.location.lat, r.location.lng]}
+                position={[r.latitude, r.longitude]}
               >
                 <Popup>
                   <strong>{r.title}</strong><br/>
