@@ -1,16 +1,92 @@
-.report-form {
-  display:flex; flex-direction:column; max-width:500px;
+/* .report-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #f5f5f5;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 2px 12px #0001;
+  max-width: 900px;
+  margin: 0 auto;
 }
+
 .report-form label {
-  margin-bottom:1rem;
-  display:flex; flex-direction:column;
+  font-weight: 500;
+  color: #222;
+  margin-bottom: 4px;
+  display: block;
 }
-.report-form input,
+
+.report-form input[type="text"],
 .report-form textarea {
-  padding:0.5rem; font-size:1rem; margin-top:0.5rem;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  font-size: 1rem;
+  margin-top: 4px;
+  background: #fff;
+  resize: vertical;
 }
-.report-form button {
-  align-self:flex-start;
-  padding:0.75rem 1.5rem;
-  background:#2a9d8f; color:white; border:none;
+
+.report-form button[type="submit"] {
+  margin-top: 24px;
+  align-self: center;
+  font-size: 22px;
+  padding: 10px 40px;
+  border-radius: 8px;
+  background: #009688;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
 }
+
+.report-form button[type="submit"]:hover {
+  background: #00796b;
+}
+
+.report-form .image-upload-box {
+  border: 2px dashed #888;
+  border-radius: 8px;
+  width: 300px;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.report-form .image-upload-box img {
+  margin-top: 8px;
+  max-width: 280px;
+  max-height: 120px;
+  border-radius: 4px;
+}
+
+.report-form .desc-preview {
+  flex: 1;
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 180px;
+  margin-left: 16px;
+}
+
+@media (max-width: 900px) {
+  .report-form {
+    padding: 10px;
+  }
+  .report-form .image-upload-box {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  .report-form .desc-preview {
+    margin-left: 0;
+    margin-top: 12px;
+  }
+  .report-form > div {
+    flex-direction: column !important;
+  }
+} */

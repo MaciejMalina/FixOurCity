@@ -1,32 +1,31 @@
 <?php
-
 namespace App\Entity;
 
 use App\Repository\StatusRepository;
+use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StatusRepository::class)]
-#[ORM\Table(name: "statuses")]
-#[ORM\Index(columns: ["label"], name: "status_label_idx")]
+#[ORM\Table(name: 'status')]
 class Status
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(length: 100, unique: true)]
+    #[ORM\Column(type: 'string', length: 50, unique: true)]
     private string $label;
 
-    #[ORM\OneToMany(mappedBy: "status", targetEntity: Report::class)]
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: Report::class)]
     private Collection $reports;
 
     public function __construct()
     {
         $this->reports = new ArrayCollection();
     }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -40,6 +39,7 @@ class Status
         $this->label = $label;
         return $this;
     }
+
     public function getReports(): Collection
     {
         return $this->reports;

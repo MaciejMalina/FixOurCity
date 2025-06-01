@@ -1,33 +1,30 @@
 <?php
-
 namespace App\Entity;
 
 use App\Repository\CommentRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
-#[ORM\Table(name: "comments")]
-#[ORM\Index(columns: ["created_at"], name: "comment_created_idx")]
+#[ORM\Table(name: 'comment')]
 class Comment
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
     #[ORM\Column(type: 'text')]
     private string $content;
 
-    #[ORM\Column(name: "created_at", type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(type: 'string', length: 100)]
+    private string $author;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "comments")]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $user = null;
+    #[ORM\Column(type: 'datetime', options: ['default' => 'CURRENT_TIMESTAMP'])]
+    private \DateTimeInterface $createdAt;
 
-    #[ORM\ManyToOne(targetEntity: Report::class, inversedBy: "comments")]
+    #[ORM\ManyToOne(targetEntity: Report::class, inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Report $report = null;
+    private Report $report;
 
     public function __construct()
     {
@@ -38,39 +35,43 @@ class Comment
     {
         return $this->id;
     }
-
     public function getContent(): string
     {
         return $this->content;
     }
-    public function setContent(string $content): self
+    public function setContent(string $c): self
     {
-        $this->content = $content;
+        $this->content = $c;
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getAuthor(): string
+    {
+        return $this->author;
+    }
+    public function setAuthor(string $a): self
+    {
+        $this->author = $a;
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
-
-    public function getUser(): ?User
+    public function setCreatedAt(\DateTimeInterface $dt): self
     {
-        return $this->user;
-    }
-    public function setUser(?User $user): self
-    {
-        $this->user = $user;
+        $this->createdAt = $dt;
         return $this;
     }
 
-    public function getReport(): ?Report
+    public function getReport(): Report
     {
         return $this->report;
     }
-    public function setReport(?Report $report): self
+    public function setReport(Report $r): self
     {
-        $this->report = $report;
+        $this->report = $r;
         return $this;
     }
 }

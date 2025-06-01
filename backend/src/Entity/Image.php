@@ -1,34 +1,37 @@
 <?php
-
 namespace App\Entity;
 
 use App\Repository\ImageRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ImageRepository::class)]
-#[ORM\Table(name: "images")]
+#[ORM\Table(name: 'image')]
 class Image
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'text')]
     private string $url;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $alt = null;
+    #[ORM\Column(type: 'datetime', options: ['default' => 'CURRENT_TIMESTAMP'])]
+    private \DateTimeInterface $createdAt;
 
-    #[ORM\ManyToOne(targetEntity: Report::class, inversedBy: "images")]
+    #[ORM\ManyToOne(targetEntity: Report::class, inversedBy: 'images')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Report $report = null;
+    private Report $report;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
-
     public function getUrl(): string
     {
         return $this->url;
@@ -39,23 +42,23 @@ class Image
         return $this;
     }
 
-    public function getAlt(): ?string
+    public function getCreatedAt(): \DateTimeInterface
     {
-        return $this->alt;
+        return $this->createdAt;
     }
-    public function setAlt(?string $alt): self
+    public function setCreatedAt(\DateTimeInterface $dt): self
     {
-        $this->alt = $alt;
+        $this->createdAt = $dt;
         return $this;
     }
 
-    public function getReport(): ?Report
+    public function getReport(): Report
     {
         return $this->report;
     }
-    public function setReport(?Report $report): self
+    public function setReport(Report $r): self
     {
-        $this->report = $report;
+        $this->report = $r;
         return $this;
     }
 }
