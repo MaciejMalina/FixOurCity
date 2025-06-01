@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Service;
 
 use App\Entity\Status;
@@ -12,25 +11,35 @@ class StatusService
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private StatusRepository       $statusRepo
+        private StatusRepository $statusRepo
     ) {}
 
     public function listFiltered(
-        array  $filters   = [],
-        int    $page      = 1,
-        int    $limit     = 10,
+        array $filters = [],
+        int $page = 1,
+        int $limit = 10,
         string $sortField = 'label',
         string $sortOrder = 'ASC'
     ): array {
         $items = $this->statusRepo->findFiltered($filters, $page, $limit, $sortField, $sortOrder);
         $total = $this->statusRepo->countFiltered($filters);
 
-        $data = array_map(fn(Status $s) => [
-            'id'    => $s->getId(),
-            'label' => $s->getLabel(),
-        ], $items);
+        $data = [];
+        foreach ($items as $s) {
+            $data[] = [
+                'id'    => $s->getId(),
+                'label' => $s->getLabel(),
+            ];
+        }
 
-        return ['data' => $data, 'meta' => ['total' => $total, 'page' => $page, 'limit' => $limit]];
+        return [
+            'data' => $data,
+            'meta' => [
+                'total' => $total,
+                'page'  => $page,
+                'limit' => $limit,
+            ],
+        ];
     }
 
     public function create(array $data): Status
@@ -38,40 +47,39 @@ class StatusService
         if (empty($data['label'])) {
             throw new BadRequestHttpException('Label is required');
         }
-
-        $status = new Status();
-        $status->setLabel($data['label']);
-        $this->em->persist($status);
+        $s = new Status();
+        $s->setLabel($data['label']);
+        $this->em->persist($s);
         $this->em->flush();
-
-        return $status;
+        return $s;
     }
 
     public function update(int $id, array $data): Status
     {
-        $status = $this->statusRepo->find($id);
-        if (!$status) {
+        $s = $this->statusRepo->find($id);
+        if (!$s) {
             throw new NotFoundHttpException('Status not found');
         }
-
         if (empty($data['label'])) {
             throw new BadRequestHttpException('Label is required');
         }
-
-        $status->setLabel($data['label']);
+        $s->setLabel($data['label']);
         $this->em->flush();
-
-        return $status;
+        return $s;
     }
 
     public function delete(int $id): void
     {
-        $status = $this->statusRepo->find($id);
-        if (!$status) {
+        $s = $this->statusRepo->find($id);
+        if (!$s) {
             throw new NotFoundHttpException('Status not found');
         }
-
-        $this->em->remove($status);
+        $this->em->remove($s);
         $this->em->flush();
+    }
+
+    public function serialize(Status $s): array
+    {
+        return ['id' => $s->getId(), 'label' => $s->getLabel()];
     }
 }

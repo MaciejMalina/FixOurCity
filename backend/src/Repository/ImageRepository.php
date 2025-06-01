@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Repository;
 
 use App\Entity\Image;
@@ -13,46 +12,45 @@ class ImageRepository extends ServiceEntityRepository
         parent::__construct($registry, Image::class);
     }
 
-    /**
-     * Pobiera obrazy z paginacją, filtrowaniem po reportId i sortowaniem.
-     *
-     * @param array{reportId?:int} $filters
-     */
     public function findFiltered(
-        array  $filters    = [],
-        int    $page       = 1,
-        int    $limit      = 10,
-        string $sortField  = 'createdAt',
-        string $sortOrder  = 'DESC'
+        array $filters = [],
+        int $page = 1,
+        int $limit = 10,
+        string $sortField = 'createdAt',
+        string $sortOrder = 'DESC'
     ): array {
         $qb = $this->createQueryBuilder('i')
-                   ->orderBy('i.' . $sortField, $sortOrder)
-                   ->setFirstResult(($page - 1) * $limit)
-                   ->setMaxResults($limit);
+                   ->leftJoin('i.report', 'r')
+                   ->addSelect('r');
 
         if (!empty($filters['reportId'])) {
-            $qb->andWhere('i.report = :reportId')
-               ->setParameter('reportId', $filters['reportId']);
+            $qb->andWhere('r.id = :rId')
+               ->setParameter('rId', $filters['reportId']);
         }
+
+        $allowed = ['createdAt'];
+        if (!in_array($sortField, $allowed)) {
+            $sortField = 'createdAt';
+        }
+        $order = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+
+        $qb->orderBy('i.' . $sortField, $order)
+           ->setFirstResult(($page - 1) * $limit)
+           ->setMaxResults($limit);
 
         return $qb->getQuery()->getResult();
     }
 
-    /**
-     * Zlicza obrazy pasujące do filtra.
-     *
-     * @param array{reportId?:int} $filters
-     */
     public function countFiltered(array $filters = []): int
     {
         $qb = $this->createQueryBuilder('i')
-                   ->select('COUNT(i.id)');
+                   ->select('COUNT(i.id)')
+                   ->leftJoin('i.report', 'r');
 
         if (!empty($filters['reportId'])) {
-            $qb->andWhere('i.report = :reportId')
-               ->setParameter('reportId', $filters['reportId']);
+            $qb->andWhere('r.id = :rId')
+               ->setParameter('rId', $filters['reportId']);
         }
-
-        return (int)$qb->getQuery()->getSingleScalarResult();
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 }

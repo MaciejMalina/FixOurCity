@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250511141640 extends AbstractMigration
+final class Version20250601103658 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -57,79 +57,49 @@ final class Version20250511141640 extends AbstractMigration
             COMMENT ON COLUMN blacklisted_tokens.created_at IS '(DC2Type:datetime_immutable)'
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE TABLE categories (id SERIAL NOT NULL, name VARCHAR(100) NOT NULL, PRIMARY KEY(id))
+            CREATE TABLE category (id SERIAL NOT NULL, name VARCHAR(100) NOT NULL, PRIMARY KEY(id))
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE UNIQUE INDEX UNIQ_3AF346685E237E06 ON categories (name)
+            CREATE UNIQUE INDEX UNIQ_64C19C15E237E06 ON category (name)
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE INDEX category_name_idx ON categories (name)
+            CREATE TABLE comment (id SERIAL NOT NULL, report_id INT NOT NULL, content TEXT NOT NULL, author VARCHAR(100) NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, PRIMARY KEY(id))
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE TABLE comments (id SERIAL NOT NULL, user_id INT NOT NULL, report_id INT NOT NULL, content TEXT NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))
+            CREATE INDEX IDX_9474526C4BD2A4C0 ON comment (report_id)
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE INDEX IDX_5F9E962AA76ED395 ON comments (user_id)
+            CREATE TABLE image (id SERIAL NOT NULL, report_id INT NOT NULL, url TEXT NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, PRIMARY KEY(id))
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE INDEX IDX_5F9E962A4BD2A4C0 ON comments (report_id)
+            CREATE INDEX IDX_C53D045F4BD2A4C0 ON image (report_id)
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE INDEX comment_created_idx ON comments (created_at)
+            CREATE TABLE refresh_tokens (id SERIAL NOT NULL, user_id INT NOT NULL, token VARCHAR(64) NOT NULL, expires_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))
         SQL);
         $this->addSql(<<<'SQL'
-            COMMENT ON COLUMN comments.created_at IS '(DC2Type:datetime_immutable)'
+            CREATE UNIQUE INDEX UNIQ_9BACE7E15F37A13B ON refresh_tokens (token)
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE TABLE images (id SERIAL NOT NULL, report_id INT NOT NULL, url VARCHAR(255) NOT NULL, alt VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))
+            CREATE INDEX IDX_9BACE7E1A76ED395 ON refresh_tokens (user_id)
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE INDEX IDX_E01FBE6A4BD2A4C0 ON images (report_id)
+            COMMENT ON COLUMN refresh_tokens.expires_at IS '(DC2Type:datetime_immutable)'
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE TABLE report (id SERIAL NOT NULL, user_id INT DEFAULT NULL, status_id INT DEFAULT NULL, category_id INT DEFAULT NULL, title VARCHAR(255) NOT NULL, description TEXT NOT NULL, lat DOUBLE PRECISION NOT NULL, lng DOUBLE PRECISION NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))
-        SQL);
-        $this->addSql(<<<'SQL'
-            CREATE INDEX IDX_C42F7784A76ED395 ON report (user_id)
-        SQL);
-        $this->addSql(<<<'SQL'
-            CREATE INDEX IDX_C42F77846BF700BD ON report (status_id)
+            CREATE TABLE report (id SERIAL NOT NULL, category_id INT NOT NULL, status_id INT NOT NULL, title VARCHAR(255) NOT NULL, description TEXT NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, latitude NUMERIC(10, 7) DEFAULT NULL, longitude NUMERIC(10, 7) DEFAULT NULL, PRIMARY KEY(id))
         SQL);
         $this->addSql(<<<'SQL'
             CREATE INDEX IDX_C42F778412469DE2 ON report (category_id)
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE INDEX created_at_idx ON report (created_at)
+            CREATE INDEX IDX_C42F77846BF700BD ON report (status_id)
         SQL);
         $this->addSql(<<<'SQL'
-            COMMENT ON COLUMN report.created_at IS '(DC2Type:datetime_immutable)'
+            CREATE TABLE status (id SERIAL NOT NULL, label VARCHAR(50) NOT NULL, PRIMARY KEY(id))
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE TABLE report_tag (report_id INT NOT NULL, tag_id INT NOT NULL, PRIMARY KEY(report_id, tag_id))
-        SQL);
-        $this->addSql(<<<'SQL'
-            CREATE INDEX IDX_F372CF044BD2A4C0 ON report_tag (report_id)
-        SQL);
-        $this->addSql(<<<'SQL'
-            CREATE INDEX IDX_F372CF04BAD26311 ON report_tag (tag_id)
-        SQL);
-        $this->addSql(<<<'SQL'
-            CREATE TABLE statuses (id SERIAL NOT NULL, label VARCHAR(100) NOT NULL, PRIMARY KEY(id))
-        SQL);
-        $this->addSql(<<<'SQL'
-            CREATE UNIQUE INDEX UNIQ_4BF01E11EA750E8 ON statuses (label)
-        SQL);
-        $this->addSql(<<<'SQL'
-            CREATE INDEX status_label_idx ON statuses (label)
-        SQL);
-        $this->addSql(<<<'SQL'
-            CREATE TABLE tags (id SERIAL NOT NULL, name VARCHAR(100) NOT NULL, PRIMARY KEY(id))
-        SQL);
-        $this->addSql(<<<'SQL'
-            CREATE UNIQUE INDEX UNIQ_6FBC94265E237E06 ON tags (name)
-        SQL);
-        $this->addSql(<<<'SQL'
-            CREATE INDEX tag_name_idx ON tags (name)
+            CREATE UNIQUE INDEX UNIQ_7B00651CEA750E8 ON status (label)
         SQL);
         $this->addSql(<<<'SQL'
             CREATE TABLE "user" (id SERIAL NOT NULL, email VARCHAR(180) NOT NULL, password VARCHAR(255) NOT NULL, first_name VARCHAR(100) NOT NULL, last_name VARCHAR(100) NOT NULL, roles JSON NOT NULL, PRIMARY KEY(id))
@@ -156,28 +126,19 @@ final class Version20250511141640 extends AbstractMigration
             ALTER TABLE blacklisted_tokens ADD CONSTRAINT FK_51F6B37CA76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE comments ADD CONSTRAINT FK_5F9E962AA76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+            ALTER TABLE comment ADD CONSTRAINT FK_9474526C4BD2A4C0 FOREIGN KEY (report_id) REFERENCES report (id) NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE comments ADD CONSTRAINT FK_5F9E962A4BD2A4C0 FOREIGN KEY (report_id) REFERENCES report (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+            ALTER TABLE image ADD CONSTRAINT FK_C53D045F4BD2A4C0 FOREIGN KEY (report_id) REFERENCES report (id) NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE images ADD CONSTRAINT FK_E01FBE6A4BD2A4C0 FOREIGN KEY (report_id) REFERENCES report (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+            ALTER TABLE refresh_tokens ADD CONSTRAINT FK_9BACE7E1A76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE report ADD CONSTRAINT FK_C42F7784A76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE
+            ALTER TABLE report ADD CONSTRAINT FK_C42F778412469DE2 FOREIGN KEY (category_id) REFERENCES category (id) NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE report ADD CONSTRAINT FK_C42F77846BF700BD FOREIGN KEY (status_id) REFERENCES statuses (id) NOT DEFERRABLE INITIALLY IMMEDIATE
-        SQL);
-        $this->addSql(<<<'SQL'
-            ALTER TABLE report ADD CONSTRAINT FK_C42F778412469DE2 FOREIGN KEY (category_id) REFERENCES categories (id) NOT DEFERRABLE INITIALLY IMMEDIATE
-        SQL);
-        $this->addSql(<<<'SQL'
-            ALTER TABLE report_tag ADD CONSTRAINT FK_F372CF044BD2A4C0 FOREIGN KEY (report_id) REFERENCES report (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
-        SQL);
-        $this->addSql(<<<'SQL'
-            ALTER TABLE report_tag ADD CONSTRAINT FK_F372CF04BAD26311 FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
+            ALTER TABLE report ADD CONSTRAINT FK_C42F77846BF700BD FOREIGN KEY (status_id) REFERENCES status (id) NOT DEFERRABLE INITIALLY IMMEDIATE
         SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE report_follower ADD CONSTRAINT FK_B9B6903BA76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE
@@ -200,28 +161,19 @@ final class Version20250511141640 extends AbstractMigration
             ALTER TABLE blacklisted_tokens DROP CONSTRAINT FK_51F6B37CA76ED395
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE comments DROP CONSTRAINT FK_5F9E962AA76ED395
+            ALTER TABLE comment DROP CONSTRAINT FK_9474526C4BD2A4C0
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE comments DROP CONSTRAINT FK_5F9E962A4BD2A4C0
+            ALTER TABLE image DROP CONSTRAINT FK_C53D045F4BD2A4C0
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE images DROP CONSTRAINT FK_E01FBE6A4BD2A4C0
-        SQL);
-        $this->addSql(<<<'SQL'
-            ALTER TABLE report DROP CONSTRAINT FK_C42F7784A76ED395
-        SQL);
-        $this->addSql(<<<'SQL'
-            ALTER TABLE report DROP CONSTRAINT FK_C42F77846BF700BD
+            ALTER TABLE refresh_tokens DROP CONSTRAINT FK_9BACE7E1A76ED395
         SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE report DROP CONSTRAINT FK_C42F778412469DE2
         SQL);
         $this->addSql(<<<'SQL'
-            ALTER TABLE report_tag DROP CONSTRAINT FK_F372CF044BD2A4C0
-        SQL);
-        $this->addSql(<<<'SQL'
-            ALTER TABLE report_tag DROP CONSTRAINT FK_F372CF04BAD26311
+            ALTER TABLE report DROP CONSTRAINT FK_C42F77846BF700BD
         SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE report_follower DROP CONSTRAINT FK_B9B6903BA76ED395
@@ -236,25 +188,22 @@ final class Version20250511141640 extends AbstractMigration
             DROP TABLE blacklisted_tokens
         SQL);
         $this->addSql(<<<'SQL'
-            DROP TABLE categories
+            DROP TABLE category
         SQL);
         $this->addSql(<<<'SQL'
-            DROP TABLE comments
+            DROP TABLE comment
         SQL);
         $this->addSql(<<<'SQL'
-            DROP TABLE images
+            DROP TABLE image
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE refresh_tokens
         SQL);
         $this->addSql(<<<'SQL'
             DROP TABLE report
         SQL);
         $this->addSql(<<<'SQL'
-            DROP TABLE report_tag
-        SQL);
-        $this->addSql(<<<'SQL'
-            DROP TABLE statuses
-        SQL);
-        $this->addSql(<<<'SQL'
-            DROP TABLE tags
+            DROP TABLE status
         SQL);
         $this->addSql(<<<'SQL'
             DROP TABLE "user"

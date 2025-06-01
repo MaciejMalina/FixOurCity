@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Service;
 
 use App\Entity\Image;
@@ -13,33 +12,10 @@ class ImageService
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private ReportRepository       $reportRepo,
-        private ImageRepository        $imageRepo
+        private ReportRepository $reportRepo,
+        private ImageRepository $imageRepo
     ) {}
 
-    public function listFiltered(
-        array  $filters    = [],
-        int    $page       = 1,
-        int    $limit      = 10,
-        string $sortField  = 'createdAt',
-        string $sortOrder  = 'DESC'
-    ): array {
-        $items = $this->imageRepo->findFiltered($filters, $page, $limit, $sortField, $sortOrder);
-        $total = $this->imageRepo->countFiltered($filters);
-
-        $data = array_map(fn(Image $i) => $this->serialize($i), $items);
-
-        return [
-            'data' => $data,
-            'meta' => ['total' => $total, 'page' => $page, 'limit' => $limit],
-        ];
-    }
-
-    /**
-     * Tworzy nowy obraz.
-     *
-     * @param array{reportId:int, url:string} $data
-     */
     public function create(array $data): Image
     {
         if (empty($data['reportId']) || empty($data['url'])) {
@@ -49,13 +25,11 @@ class ImageService
         if (!$report) {
             throw new NotFoundHttpException('Report not found');
         }
-
         $img = new Image();
         $img->setUrl($data['url'])
             ->setReport($report);
         $this->em->persist($img);
         $this->em->flush();
-
         return $img;
     }
 
@@ -89,6 +63,32 @@ class ImageService
             'url'       => $i->getUrl(),
             'createdAt' => $i->getCreatedAt()->format('c'),
             'reportId'  => $i->getReport()->getId(),
+        ];
+    }
+
+    public function listFiltered(
+        array $filters = [],
+        int $page = 1,
+        int $limit = 10,
+        string $sortField = 'createdAt',
+        string $sortOrder = 'DESC'
+    ): array {
+        $items = $this->imageRepo->findFiltered($filters, $page, $limit, $sortField, $sortOrder);
+        $total = $this->imageRepo->countFiltered($filters);
+
+        $data = [];
+        foreach ($items as $i) {
+            $data[] = $this->serialize($i);
+        }
+
+        return [
+            'data' => $data,
+            'meta' => [
+                'total' => $total,
+                'page'  => $page,
+                'limit' => $limit,
+                'pages' => (int) ceil($total / $limit),
+            ],
         ];
     }
 }

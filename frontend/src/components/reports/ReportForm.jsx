@@ -1,11 +1,12 @@
-// src/components/ReportForm.jsx
+// frontend/src/components/ReportForm.jsx
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import "../../styles/ReportForm.css"; // <- importujemy osobny plik CSS
 
-// Fix default Marker icon paths for react-leaflet
+// Konfiguracja ikon Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -16,7 +17,9 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-// Component to handle map clicks and set a marker
+/**
+ * Komponent pomocniczy do zaznaczania lokalizacji na mapie
+ */
 function LocationSelector({ position, setPosition }) {
   useMapEvents({
     click(e) {
@@ -27,22 +30,60 @@ function LocationSelector({ position, setPosition }) {
 }
 
 export default function ReportForm() {
-  // Form state
+  // -- STANY FORMULARZA --
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [imageFile, setImageFile] = useState(null);
+  const [categories, setCategories] = useState([]); // pobrane z backendu
+  const [statuses, setStatuses] = useState([]);     // pobrane z backendu
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedStatus, setSelectedStatus]     = useState("");
+
+  const [imageFile, setImageFile]       = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [position, setPosition] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(null);
+  const [position, setPosition]         = useState(null);
+
+  const [submitting, setSubmitting]   = useState(false);
+  const [error, setError]             = useState(null);
+  const [successMsg, setSuccessMsg]   = useState(null);
 
   const fileInputRef = useRef();
 
-  // Handle file selection and preview
+  // **PO ZAMONTOWANIU**: pobieramy kategorie i statusy
+  useEffect(() => {
+    // --- POBIERANIE KATEGORII ---
+    fetch("/api/v1/categories?page=1&limit=100")
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        setCategories(data.data);
+        if (data.data.length > 0) {
+          setSelectedCategory(data.data[0].id.toString());
+        }
+      })
+      .catch(() => console.warn("Nie udało się pobrać kategorii"));
+
+    // --- POBIERANIE STATUSÓW ---
+    fetch("/api/v1/statuses?page=1&limit=100")
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        setStatuses(data.data);
+        if (data.data.length > 0) {
+          setSelectedStatus(data.data[0].id.toString());
+        }
+      })
+      .catch(() => console.warn("Nie udało się pobrać statusów"));
+  }, []);
+
+  // Obsługa zmiany pliku (zapis pliku + generowanie podglądu)
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     setImageFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -51,27 +92,40 @@ export default function ReportForm() {
     reader.readAsDataURL(file);
   };
 
-  // Handle form submission
+  // Obsługa submita całego formularza
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
 
+    // --- WALIDACJA ---
     if (!title.trim() || !description.trim()) {
       setError("Tytuł i opis są wymagane.");
       return;
     }
-    if (!position) {
-      setError("Proszę wybrać lokalizację na mapie.");
+    if (!selectedCategory) {
+      setError("Proszę wybrać kategorię.");
       return;
     }
-    setSubmitting(true);
+    if (!selectedStatus) {
+      setError("Proszę wybrać status.");
+      return;
+    }
+    if (!position) {
+      setError("Proszę wskazać lokalizację na mapie.");
+      return;
+    }
 
+    setSubmitting(true);
     try {
-      // 1) Utworzenie nowego reportu
+      // 1) Tworzymy raport
       const reportPayload = {
-        title: title.trim(),
+        title:       title.trim(),
         description: description.trim(),
+        categoryId:  parseInt(selectedCategory, 10),
+        statusId:    parseInt(selectedStatus, 10),
+        latitude:    position[0],
+        longitude:   position[1],
       };
       const reportRes = await fetch("/api/v1/reports", {
         method: "POST",
@@ -79,48 +133,44 @@ export default function ReportForm() {
         body: JSON.stringify(reportPayload),
       });
       if (!reportRes.ok) {
-        const data = await reportRes.json();
-        throw new Error(data.error || "Błąd tworzenia zgłoszenia");
+        let errMsg = `Błąd serwera (${reportRes.status})`;
+        try {
+          const data = await reportRes.json();
+          if (data.error) errMsg = data.error;
+        } catch {}
+        throw new Error(errMsg);
       }
       const createdReport = await reportRes.json();
       const reportId = createdReport.id;
 
-      // 2) Jeśli wybrano plik, to symulujemy „upload” – tu przykładowo
-      // wysyłamy Base64 do endpointu, który spodziewa się URL-a.  
-      // W realnej aplikacji należałoby wysłać plik do storage i pobrać URL.
+      // 2) Dodanie zdjęcia (jeżeli wybrano)
       if (imagePreview) {
-        // W tym przykładzie zakładamy, że backend: POST /api/v1/images przyjmuje { reportId, url }
+        // Uwaga: w prawdziwej aplikacji upload pliku lepiej robić przez multipart/form-data.
         const imagePayload = {
           reportId,
-          url: imagePreview,
+          url: imagePreview
         };
-        const imageRes = await fetch("/api/v1/images", {
+        const imgRes = await fetch("/api/v1/images", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(imagePayload),
         });
-        if (!imageRes.ok) {
-          const data = await imageRes.json();
-          console.warn("Obraz nie został zapisany:", data.error);
+        if (!imgRes.ok) {
+          console.warn("Nie udało się dodać obrazu:", await imgRes.text());
         }
       }
 
-      // 3) Zapisanie współrzędnych w backendzie – zakładamy, że report ma endpoint PATCH na koordynaty
-      // Jeżeli w backendzie nie ma kolumn na lat/lng, to ten krok można pominąć lub zachować tylko frontowy marker.
-      await fetch(`/api/v1/reports/${reportId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude: position[0], longitude: position[1] }),
-      });
-
+      // Sukces
       setSuccessMsg("Zgłoszenie zostało utworzone pomyślnie!");
-      // Wyczyszczenie formularza
+      // Czyszczenie formularza
       setTitle("");
       setDescription("");
       setImageFile(null);
       setImagePreview(null);
       setPosition(null);
       fileInputRef.current.value = "";
+      if (categories.length > 0) setSelectedCategory(categories[0].id.toString());
+      if (statuses.length > 0) setSelectedStatus(statuses[0].id.toString());
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -130,41 +180,18 @@ export default function ReportForm() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "900px",
-        margin: "20px auto",
-        background: "#f0f0f0",
-        borderRadius: "8px",
-        padding: "20px",
-      }}
-    >
-      <form onSubmit={handleSubmit}>
-        {/* Sekcja wgrania zdjęcia i opis */}
-        <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
-          <div
-            style={{
-              flex: 1,
-              border: "2px dashed #555",
-              borderRadius: "8px",
-              position: "relative",
-              padding: "10px",
-              textAlign: "center",
-              background: "#fff",
-            }}
-          >
+    <div className="report-form-container">
+      <h2 className="form-heading">Dodaj nowe zgłoszenie</h2>
+
+      <form onSubmit={handleSubmit} className="report-form">
+        {/* ----------------- UPLOAD ZDJĘCIA + DANE OPISOWE ----------------- */}
+        <div className="upload-and-info-wrapper">
+          {/* --- lewa kolumna: upload zdjęcia --- */}
+          <div className="photo-upload-box">
             <input
               type="file"
               accept="image/*"
-              style={{
-                opacity: 0,
-                width: "100%",
-                height: "100%",
-                position: "absolute",
-                top: 0,
-                left: 0,
-                cursor: "pointer",
-              }}
+              className="photo-upload-input"
               onChange={handleFileChange}
               ref={fileInputRef}
             />
@@ -172,14 +199,10 @@ export default function ReportForm() {
               <img
                 src={imagePreview}
                 alt="Podgląd"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "200px",
-                  objectFit: "cover",
-                }}
+                className="image-preview"
               />
             ) : (
-              <div style={{ padding: "40px 0" }}>
+              <div className="upload-placeholder">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -187,7 +210,7 @@ export default function ReportForm() {
                   stroke="currentColor"
                   width="48"
                   height="48"
-                  style={{ color: "#555" }}
+                  className="upload-icon"
                 >
                   <path
                     strokeLinecap="round"
@@ -196,29 +219,22 @@ export default function ReportForm() {
                     d="M4 16v1a1 1 0 001 1h3m10-2v1a1 1 0 001 1h3m0-4V6a2 2 0 00-2-2H5a2 2 0 00-2 2v8m16 0H4m5-4l3-3 3 3m-3-3v12"
                   />
                 </svg>
-                <p style={{ color: "#555", marginTop: "8px" }}>
-                  Załącz zdjęcie
-                </p>
+                <p className="upload-text">Załącz zdjęcie</p>
               </div>
             )}
           </div>
-          <div
-            style={{
-              flex: 1,
-              background: "#fff",
-              borderRadius: "8px",
-              padding: "16px",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              fontSize: "14px",
-              lineHeight: "1.6",
-              color: "#333",
-            }}
-          >
-            <div style={{ marginTop: "10px" }}>
-              <label
-                htmlFor="title"
-                style={{ display: "block", fontWeight: "bold", marginBottom: "4px" }}
-              >
+
+          {/* --- prawa kolumna: opis, tytuł, opis, kategoria, status --- */}
+          <div className="description-box">
+            <h3 className="description-heading">Opis</h3>
+            <p className="description-text">
+              Podaj szczegółowe informacje o problemie. Im więcej szczegółów,
+              tym szybciej służby mogą zareagować. Możesz wpisać lokalizację,
+              czas zdarzenia, i inne istotne uwagi.
+            </p>
+
+            <div className="form-field">
+              <label htmlFor="title" className="field-label">
                 Tytuł:
               </label>
               <input
@@ -226,88 +242,88 @@ export default function ReportForm() {
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                  marginBottom: "12px",
-                }}
+                className="field-input"
                 placeholder="Krótki tytuł zgłoszenia"
                 required
               />
-              <label
-                htmlFor="description"
-                style={{ display: "block", fontWeight: "bold", marginBottom: "4px" }}
-              >
+
+              <label htmlFor="description" className="field-label">
                 Opis:
               </label>
               <textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: "100px",
-                  padding: "8px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                  resize: "vertical",
-                }}
+                className="field-textarea"
                 placeholder="Szczegółowy opis problemu"
                 required
               />
+
+              <label htmlFor="category" className="field-label">
+                Kategoria:
+              </label>
+              <select
+                id="category"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="field-select"
+              >
+                <option value="">-- Wybierz kategorię --</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id.toString()}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+
+              <label htmlFor="status" className="field-label">
+                Status:
+              </label>
+              <select
+                id="status"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="field-select"
+              >
+                <option value="">-- Wybierz status --</option>
+                {statuses.map((s) => (
+                  <option key={s.id} value={s.id.toString()}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
 
-        {/* Sekcja mapy */}
-        <div
-          style={{
-            width: "100%",
-            height: "400px",
-            borderRadius: "8px",
-            overflow: "hidden",
-            marginBottom: "20px",
-          }}
-        >
+        {/* ----------------- MAPA ----------------- */}
+        <div className="map-wrapper">
           <MapContainer
-            center={[50.06465, 19.94498]} // domyślnie Kraków
+            center={[50.06465, 19.94498]}
             zoom={13}
-            style={{ width: "100%", height: "100%" }}
+            className="leaflet-map"
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+              attribution='&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <LocationSelector position={position} setPosition={setPosition} />
           </MapContainer>
-          <p style={{ marginTop: "8px", fontSize: "14px", color: "#555" }}>
-            Kliknij na mapie, aby zaznaczyć lokalizację problemu.
+          <p className="map-instruction">
+            Kliknij na mapie, aby zaznaczyć współrzędne problemu.
           </p>
         </div>
 
-        {error && (
-          <div style={{ color: "crimson", marginBottom: "12px" }}>{error}</div>
-        )}
-        {successMsg && (
-          <div style={{ color: "green", marginBottom: "12px" }}>{successMsg}</div>
-        )}
+        {/* ----------------- KOMUNIKATY BŁĘDÓW / SUKCESU ----------------- */}
+        {error && <div className="error-text">{error}</div>}
+        {successMsg && <div className="success-text">{successMsg}</div>}
 
-        {/* Przycisk Wyślij */}
-        <div style={{ textAlign: "center" }}>
+        {/* ----------------- PRZYCISK WYŚLIJ ----------------- */}
+        <div className="submit-container">
           <button
             type="submit"
             disabled={submitting}
-            style={{
-              background: "#2c9c87",
-              color: "#fff",
-              padding: "14px 40px",
-              fontSize: "18px",
-              border: "none",
-              borderRadius: "8px",
-              cursor: submitting ? "not-allowed" : "pointer",
-            }}
+            className="submit-button"
           >
             {submitting ? "Trwa wysyłanie..." : "Wyślij"}
           </button>

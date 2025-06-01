@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Repository;
 
 use App\Entity\Category;
@@ -13,46 +12,40 @@ class CategoryRepository extends ServiceEntityRepository
         parent::__construct($registry, Category::class);
     }
 
-    /**
-     * Pobiera kategorie z paginacją, filtrowaniem po nazwie i sortowaniem.
-     *
-     * @param array{name?:string} $filters
-     */
     public function findFiltered(
-        array  $filters   = [],
-        int    $page      = 1,
-        int    $limit     = 10,
+        array $filters = [],
+        int $page = 1,
+        int $limit = 10,
         string $sortField = 'name',
         string $sortOrder = 'ASC'
     ): array {
-        $qb = $this->createQueryBuilder('c')
-                   ->orderBy('c.' . $sortField, $sortOrder)
-                   ->setFirstResult(($page - 1) * $limit)
-                   ->setMaxResults($limit);
-
+        $qb = $this->createQueryBuilder('c');
         if (!empty($filters['name'])) {
-            $qb->andWhere('c.name LIKE :name')
-               ->setParameter('name', '%'.$filters['name'].'%');
+            $qb->andWhere('c.name ILIKE :name')
+               ->setParameter('name', '%' . $filters['name'] . '%');
         }
+
+        $allowedSortFields = ['name'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'name';
+        }
+        $order = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+
+        $qb->orderBy('c.' . $sortField, $order)
+           ->setFirstResult(($page - 1) * $limit)
+           ->setMaxResults($limit);
 
         return $qb->getQuery()->getResult();
     }
 
-    /**
-     * Zlicza kategorie pasujące do filtra.
-     *
-     * @param array{name?:string} $filters
-     */
     public function countFiltered(array $filters = []): int
     {
         $qb = $this->createQueryBuilder('c')
                    ->select('COUNT(c.id)');
-
         if (!empty($filters['name'])) {
-            $qb->andWhere('c.name LIKE :name')
-               ->setParameter('name', '%'.$filters['name'].'%');
+            $qb->andWhere('c.name ILIKE :name')
+               ->setParameter('name', '%' . $filters['name'] . '%');
         }
-
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 }

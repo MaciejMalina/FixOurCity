@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Repository;
 
 use App\Entity\Status;
@@ -13,46 +12,40 @@ class StatusRepository extends ServiceEntityRepository
         parent::__construct($registry, Status::class);
     }
 
-    /**
-     * Pobiera statusy z paginacją, filtrowaniem po nazwie i sortowaniem.
-     *
-     * @param array{label?:string} $filters
-     */
     public function findFiltered(
-        array  $filters   = [],
-        int    $page      = 1,
-        int    $limit     = 10,
+        array $filters = [],
+        int $page = 1,
+        int $limit = 10,
         string $sortField = 'label',
         string $sortOrder = 'ASC'
     ): array {
-        $qb = $this->createQueryBuilder('s')
-                   ->orderBy('s.' . $sortField, $sortOrder)
-                   ->setFirstResult(($page - 1) * $limit)
-                   ->setMaxResults($limit);
-
+        $qb = $this->createQueryBuilder('s');
         if (!empty($filters['label'])) {
-            $qb->andWhere('s.label LIKE :label')
-               ->setParameter('label', '%'.$filters['label'].'%');
+            $qb->andWhere('s.label ILIKE :lbl')
+               ->setParameter('lbl', '%' . $filters['label'] . '%');
         }
+
+        $allowedSortFields = ['label'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'label';
+        }
+        $order = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
+
+        $qb->orderBy('s.' . $sortField, $order)
+           ->setFirstResult(($page - 1) * $limit)
+           ->setMaxResults($limit);
 
         return $qb->getQuery()->getResult();
     }
 
-    /**
-     * Zlicza statusy zgodne z filtrem.
-     *
-     * @param array{label?:string} $filters
-     */
     public function countFiltered(array $filters = []): int
     {
         $qb = $this->createQueryBuilder('s')
                    ->select('COUNT(s.id)');
-
         if (!empty($filters['label'])) {
-            $qb->andWhere('s.label LIKE :label')
-               ->setParameter('label', '%'.$filters['label'].'%');
+            $qb->andWhere('s.label ILIKE :lbl')
+               ->setParameter('lbl', '%' . $filters['label'] . '%');
         }
-
         return (int) $qb->getQuery()->getSingleScalarResult();
     }
 }

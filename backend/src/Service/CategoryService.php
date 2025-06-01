@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Service;
 
 use App\Entity\Category;
@@ -12,25 +11,35 @@ class CategoryService
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private CategoryRepository     $catRepo
+        private CategoryRepository $categoryRepo
     ) {}
 
     public function listFiltered(
-        array  $filters   = [],
-        int    $page      = 1,
-        int    $limit     = 10,
+        array $filters = [],
+        int $page = 1,
+        int $limit = 10,
         string $sortField = 'name',
         string $sortOrder = 'ASC'
     ): array {
-        $items = $this->catRepo->findFiltered($filters, $page, $limit, $sortField, $sortOrder);
-        $total = $this->catRepo->countFiltered($filters);
+        $items = $this->categoryRepo->findFiltered($filters, $page, $limit, $sortField, $sortOrder);
+        $total = $this->categoryRepo->countFiltered($filters);
 
-        $data = array_map(fn(Category $c) => [
-            'id'   => $c->getId(),
-            'name' => $c->getName(),
-        ], $items);
+        $data = [];
+        foreach ($items as $c) {
+            $data[] = [
+                'id'   => $c->getId(),
+                'name' => $c->getName(),
+            ];
+        }
 
-        return ['data'=>$data,'meta'=>['total'=>$total,'page'=>$page,'limit'=>$limit]];
+        return [
+            'data' => $data,
+            'meta' => [
+                'total' => $total,
+                'page'  => $page,
+                'limit' => $limit,
+            ],
+        ];
     }
 
     public function create(array $data): Category
@@ -47,7 +56,7 @@ class CategoryService
 
     public function update(int $id, array $data): Category
     {
-        $c = $this->catRepo->find($id);
+        $c = $this->categoryRepo->find($id);
         if (!$c) {
             throw new NotFoundHttpException('Category not found');
         }
@@ -61,11 +70,16 @@ class CategoryService
 
     public function delete(int $id): void
     {
-        $c = $this->catRepo->find($id);
+        $c = $this->categoryRepo->find($id);
         if (!$c) {
             throw new NotFoundHttpException('Category not found');
         }
         $this->em->remove($c);
         $this->em->flush();
+    }
+
+    public function serialize(Category $c): array
+    {
+        return ['id' => $c->getId(), 'name' => $c->getName()];
     }
 }
