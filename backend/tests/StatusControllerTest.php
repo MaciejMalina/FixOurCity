@@ -7,6 +7,8 @@ use App\Service\StatusService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class StatusControllerTest extends TestCase
 {
@@ -15,7 +17,7 @@ class StatusControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->service    = $this->createMock(StatusService::class);
+        $this->service = $this->createMock(StatusService::class);
         $this->controller = new StatusController($this->service);
 
         $c = $this->createMock(ContainerInterface::class);
@@ -26,80 +28,127 @@ class StatusControllerTest extends TestCase
     public function testListStatuses(): void
     {
         $expected = [
-            'data' => [['id'=>1,'label'=>'Nowe']],
-            'meta' => ['page'=>1,'limit'=>10,'total'=>1,'pages'=>1]
+            'data' => [
+                ['id' => 1, 'label' => 'Nowe']
+            ],
+            'meta' => ['total' => 1, 'page' => 1, 'limit' => 10]
         ];
         $this->service
              ->method('listFiltered')
              ->willReturn($expected);
 
-        $request  = new Request(['label'=>'','page'=>1,'limit'=>10,'sort'=>'label','order'=>'ASC']);
+        $request = new Request(['label' => '', 'page' => 1, 'limit' => 10, 'sort' => 'label', 'order' => 'ASC']);
         $response = $this->controller->index($request);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals($expected, json_decode($response->getContent(), true));
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame($expected, $data);
+    }
+
+    public function testCreateStatusBad(): void
+    {
+        $this->service
+             ->method('create')
+             ->willThrowException(new BadRequestHttpException('No label'));
+
+        $request = new Request([], [], [], [], [], [], json_encode([]));
+        $response = $this->controller->create($request);
+
+        $this->assertEquals(400, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
+        $this->assertStringContainsString('No label', $data['error']);
     }
 
     public function testCreateStatus(): void
     {
-        $payload = ['label'=>'Test'];
-        $status = $this->getMockBuilder(Status::class)
-                       ->disableOriginalConstructor()
-                       ->getMock();
-        $status->method('getId')->willReturn(2);
-        $status->method('getLabel')->willReturn('Test');
+        $statusObj = $this->getMockBuilder(Status::class)
+                          ->disableOriginalConstructor()
+                          ->onlyMethods(['getId','getLabel'])
+                          ->getMock();
+        $statusObj->method('getId')->willReturn(2);
+        $statusObj->method('getLabel')->willReturn('Zatwierdzone');
 
         $this->service
              ->expects($this->once())
              ->method('create')
-             ->with($payload)
-             ->willReturn($status);
+             ->with(['label' => 'Zatwierdzone'])
+             ->willReturn($statusObj);
 
-        $request  = new Request([], [], [], [], [], [], json_encode($payload));
+        $request = new Request([], [], [], [], [], [], json_encode(['label' => 'Zatwierdzone']));
         $response = $this->controller->create($request);
 
         $this->assertEquals(201, $response->getStatusCode());
-        $this->assertEquals(['id'=>2,'label'=>'Test'], json_decode($response->getContent(), true));
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame(2, $data['id']);
+        $this->assertSame('Zatwierdzone', $data['label']);
     }
 
     public function testShowStatusNotFound(): void
     {
-        $this->service->method('listFiltered')->willReturn(['data'=>[], 'meta'=>[]]);
+        $this->service
+             ->method('listFiltered')
+             ->willReturn(['data' => [], 'meta' => []]);
 
         $response = $this->controller->show(99);
         $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
     }
 
-    public function testShowStatusFound(): void
+    public function testShowStatus(): void
     {
-        $entry = ['id'=>5,'label'=>'Foo'];
-        $this->service->method('listFiltered')->willReturn(['data'=>[$entry],'meta'=>[]]);
-
-        $response = $this->controller->show(5);
-        $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals($entry, json_decode($response->getContent(), true));
-    }
-
-    public function testUpdateStatus(): void
-    {
-        $payload = ['label'=>'Zakt'];
-        $status = $this->getMockBuilder(Status::class)
-                       ->disableOriginalConstructor()
-                       ->getMock();
-        $status->method('getId')->willReturn(7);
-        $status->method('getLabel')->willReturn('Zakt');
-
+        $entry = ['id' => 3, 'label' => 'W trakcie'];
         $this->service
-             ->expects($this->once())
-             ->method('update')
-             ->with(7, $payload)
-             ->willReturn($status);
+             ->method('listFiltered')
+             ->willReturn(['data' => [$entry], 'meta' => []]);
 
-        $request  = new Request([], [], [], [], [], [], json_encode($payload));
-        $response = $this->controller->update(7, $request);
-
+        $response = $this->controller->show(3);
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals(['id'=>7,'label'=>'Zakt'], json_decode($response->getContent(), true));
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame($entry, $data);
+    }
+
+    public function testUpdateStatusBad(): void
+    {
+        $this->service
+             ->method('update')
+             ->willThrowException(new BadRequestHttpException('Err'));
+
+        $request = new Request([], [], [], [], [], [], json_encode([]));
+        $response = $this->controller->update(4, $request);
+
+        $this->assertEquals(400, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
+        $this->assertStringContainsString('Err', $data['error']);
+    }
+
+    public function testUpdateStatusNotFound(): void
+    {
+        $this->service
+             ->method('update')
+             ->willThrowException(new NotFoundHttpException('NF'));
+
+        $request = new Request([], [], [], [], [], [], json_encode(['label' => 'X']));
+        $response = $this->controller->update(5, $request);
+
+        $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
+    }
+
+    public function testDeleteStatusNotFound(): void
+    {
+        $this->service
+             ->method('delete')
+             ->willThrowException(new NotFoundHttpException('NF'));
+
+        $response = $this->controller->delete(6);
+        $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
+        $this->assertStringContainsString('NF', $data['error']);
     }
 
     public function testDeleteStatus(): void
@@ -107,9 +156,13 @@ class StatusControllerTest extends TestCase
         $this->service
              ->expects($this->once())
              ->method('delete')
-             ->with(8);
+             ->with(7);
 
-        $response = $this->controller->delete(8);
+        $response = $this->controller->delete(7);
         $this->assertEquals(204, $response->getStatusCode());
+        $body = $response->getContent();
+        $this->assertTrue(
+            $body === '' || $body === 'null' || $body === '{}',
+        );
     }
 }

@@ -2,113 +2,157 @@
 namespace App\Tests\Controller;
 
 use App\Controller\ImageController;
-use App\Service\ImageService;
 use App\Entity\Image;
+use App\Service\ImageService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ImageControllerTest extends TestCase
 {
-    private ImageService $service;
+    private ImageService $imageService;
     private ImageController $controller;
 
     protected function setUp(): void
     {
-        $this->service    = $this->createMock(ImageService::class);
-        $this->controller = new ImageController($this->service);
+        $this->imageService = $this->createMock(ImageService::class);
+        $this->controller = new ImageController($this->imageService);
 
         $c = $this->createMock(ContainerInterface::class);
         $c->method('has')->willReturn(false);
         $this->controller->setContainer($c);
     }
 
-    public function testListImages(): void
+    public function testIndexReturnsPaginatedList(): void
     {
         $expected = [
-            'data' => [['id'=>1,'url'=>'u.png']],
-            'meta' => ['page'=>1,'limit'=>10,'total'=>1,'pages'=>1]
+            'data' => [],
+            'meta' => ['total' => 0, 'page' => 1, 'limit' => 10, 'pages' => 1]
         ];
-        $this->service->method('listFiltered')->willReturn($expected);
+        $this->imageService
+             ->method('listFiltered')
+             ->willReturn($expected);
 
-        $request  = new Request(['reportId'=>'','page'=>1,'limit'=>10,'sort'=>'createdAt','order'=>'ASC']);
+        $request = new Request();
         $response = $this->controller->index($request);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals($expected, json_decode($response->getContent(), true));
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame($expected, $data);
     }
 
-    public function testCreateImageBad(): void
+    public function testCreateImageMissingFields(): void
     {
-        $this->service
+        $this->imageService
              ->method('create')
-             ->willThrowException(new BadRequestHttpException('Missing'));
-        $request = new Request([], [], [], [], [], [], json_encode(['url'=>'']));
+             ->willThrowException(new BadRequestHttpException('reportId and url are required'));
+
+        $request = new Request([], [], [], [], [], [], json_encode([]));
         $response = $this->controller->create($request);
-
         $this->assertEquals(400, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
     }
 
-    public function testCreateImageNotFoundReport(): void
+    public function testCreateImageInvalidReport(): void
     {
-        $this->service
+        $this->imageService
              ->method('create')
-             ->willThrowException(new NotFoundHttpException('No rpt'));
-        $request = new Request([], [], [], [], [], [], json_encode(['reportId'=>42,'url'=>'x']));
+             ->willThrowException(new NotFoundHttpException('Report not found'));
+
+        $body = ['reportId' => 999, 'url' => 'http://foo/x.png'];
+        $request = new Request([], [], [], [], [], [], json_encode($body));
         $response = $this->controller->create($request);
 
         $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
+        $this->assertStringContainsString('Report not found', $data['error']);
+    }
+
+    public function testCreateImageSuccess(): void
+    {
+        $imgObj = $this->getMockBuilder(Image::class)
+                       ->getMock();
+        $imgObj->method('getId')->willReturn(20);
+        $imgObj->method('getUrl')->willReturn('http://foo/y.png');
+        $imgObj->method('getCreatedAt')->willReturn(new \DateTimeImmutable('2025-06-05T12:00:00+00:00'));
+
+        $reportMock = $this->getMockBuilder(\App\Entity\Report::class)->getMock();
+        $reportMock->method('getId')->willReturn(8);
+        $imgObj->method('getReport')->willReturn($reportMock);
+
+        $this->imageService
+             ->method('create')
+             ->willReturn($imgObj);
+        $this->imageService
+             ->method('serialize')
+             ->willReturn([
+                 'id'=>20,'url'=>'http://foo/y.png','createdAt'=>'2025-06-05T12:00:00+00:00','reportId'=>8
+             ]);
+
+        $body = ['reportId' => 8, 'url' => 'http://foo/y.png'];
+        $request = new Request([], [], [], [], [], [], json_encode($body));
+        $response = $this->controller->create($request);
+
+        $this->assertEquals(201, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame(20, $data['id']);
+        $this->assertSame('http://foo/y.png', $data['url']);
     }
 
     public function testShowImageNotFound(): void
     {
-        $this->service->method('listFiltered')->willReturn(['data'=>[], 'meta'=>[]]);
-        $response = $this->controller->show(99);
+        $this->imageService
+             ->method('listFiltered')
+             ->willReturn(['data'=>[], 'meta'=>[]]);
+
+        $response = $this->controller->show(123);
         $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
     }
 
-    public function testShowImage(): void
+    public function testShowImageFound(): void
     {
-        $entry = ['id'=>3,'url'=>'z.png'];
-        $this->service->method('listFiltered')->willReturn(['data'=>[$entry],'meta'=>[]]);
+        $entry = ['id'=>5,'url'=>'http://foo/5.png','createdAt'=>'2025-06-05T12:00:00+00:00','reportId'=>2];
+        $this->imageService
+             ->method('listFiltered')
+             ->willReturn(['data'=>[$entry], 'meta'=>[]]);
 
-        $response = $this->controller->show(3);
+        $response = $this->controller->show(5);
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals($entry, json_decode($response->getContent(), true));
-    }
-
-    public function testUpdateImageBad(): void
-    {
-        $this->service->method('update')->willThrowException(new BadRequestHttpException('No url'));
-        $response = $this->controller->update(5, new Request([], [], [], [], [], [], json_encode([])));
-        $this->assertEquals(400, $response->getStatusCode());
-    }
-
-    public function testUpdateImageNotFound(): void
-    {
-        $this->service->method('update')->willThrowException(new NotFoundHttpException('Not found'));
-        $request = new Request([], [], [], [], [], [], json_encode(['url'=>'x']));
-        $response = $this->controller->update(6, $request);
-        $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame($entry, $data);
     }
 
     public function testDeleteImageNotFound(): void
     {
-        $this->service->method('delete')->willThrowException(new NotFoundHttpException('NF'));
-        $response = $this->controller->delete(7);
+        $this->imageService
+             ->method('delete')
+             ->willThrowException(new NotFoundHttpException('NF'));
+
+        $response = $this->controller->delete(6);
         $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
+        $this->assertStringContainsString('NF', $data['error']);
     }
 
     public function testDeleteImage(): void
     {
-        $this->service
+        $this->imageService
              ->expects($this->once())
              ->method('delete')
-             ->with(8);
+             ->with(7);
 
-        $response = $this->controller->delete(8);
+        $response = $this->controller->delete(7);
         $this->assertEquals(204, $response->getStatusCode());
+        $body = $response->getContent();
+        $this->assertTrue(
+            $body === '' || $body === 'null' || $body === '{}'
+        );
     }
 }

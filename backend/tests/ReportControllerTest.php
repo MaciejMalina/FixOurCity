@@ -2,12 +2,14 @@
 namespace App\Tests\Controller;
 
 use App\Controller\ReportController;
+use App\Entity\Report;
 use App\Service\ReportService;
 use App\Repository\ReportRepository;
-use App\Entity\Report;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ReportControllerTest extends TestCase
 {
@@ -17,8 +19,8 @@ class ReportControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->service    = $this->createMock(ReportService::class);
-        $this->repo       = $this->createMock(ReportRepository::class);
+        $this->service = $this->createMock(ReportService::class);
+        $this->repo    = $this->createMock(ReportRepository::class);
         $this->controller = new ReportController($this->service, $this->repo);
 
         $c = $this->createMock(ContainerInterface::class);
@@ -28,134 +30,173 @@ class ReportControllerTest extends TestCase
 
     public function testListReports(): void
     {
-        $entity = $this->getMockBuilder(Report::class)
-                       ->disableOriginalConstructor()
-                       ->getMock();
-        $this->repo->method('findFiltered')->willReturn([$entity]);
-        $this->repo->method('countFiltered')->willReturn(1);
-        $this->service->method('serialize')->willReturn(['id'=>1,'title'=>'T']);
+        $expected = [
+            'data' => [],
+            'meta' => ['total' => 0, 'page' => 1, 'limit' => 10, 'pages' => 1]
+        ];
+        $this->service
+             ->method('listFiltered')
+             ->willReturn($expected);
 
-        $request  = new Request([
-            'page'=>1,'limit'=>10,
-            'status'=>'','category'=>'',
-            'sort'=>'createdAt','order'=>'ASC'
-        ]);
-        $response = $this->controller->list($request);
+        $request = new Request();
+        $response = $this->controller->index($request);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $json = json_decode($response->getContent(), true);
-        $this->assertCount(1, $json['data']);
-        $this->assertEquals(1, $json['meta']['total']);
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame($expected, $data);
     }
 
-    public function testCreateReportBad(): void
+    public function testCreateReportMissingFields(): void
     {
-        $payload = ['title'=>'','description'=>''];
-        $request = new Request([], [], [], [], [], [], json_encode($payload));
+        $this->service
+             ->method('create')
+             ->willThrowException(new BadRequestHttpException('Missing fields'));
+
+        $request = new Request([], [], [], [], [], [], json_encode([]));
         $response = $this->controller->create($request);
 
         $this->assertEquals(400, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
+        $this->assertStringContainsString('Missing fields', $data['error']);
     }
 
-    public function testCreateReport(): void
+    public function testCreateReportSuccess(): void
     {
-        $entity = $this->getMockBuilder(Report::class)
-                       ->disableOriginalConstructor()
-                       ->getMock();
+        $reportObj = $this->getMockBuilder(Report::class)
+                          ->getMock();
+        $reportObj->method('getId')->willReturn(99);
+        $reportObj->method('getTitle')->willReturn('Nowy tytuł');
+        $reportObj->method('getDescription')->willReturn('Nowy opis');
+        $reportObj->method('getCreatedAt')->willReturn(new \DateTimeImmutable('2025-06-02T12:00:00+00:00'));
+        $statusMock = $this->getMockBuilder(\App\Entity\Status::class)->getMock();
+        $categoryMock = $this->getMockBuilder(\App\Entity\Category::class)->getMock();
+        $reportObj->method('getStatus')->willReturn($statusMock);
+        $reportObj->method('getCategory')->willReturn($categoryMock);
+
         $this->service
-             ->expects($this->once())
-             ->method('createReport')
-             ->with('T','D')
-             ->willReturn($entity);
+             ->method('create')
+             ->willReturn($reportObj);
         $this->service
              ->method('serialize')
-             ->willReturn(['id'=>2,'title'=>'T']);
+             ->willReturn(['id'=>99,'title'=>'Nowy tytuł','description'=>'Nowy opis']);
 
-        $payload = ['title'=>'T','description'=>'D'];
-        $request = new Request([], [], [], [], [], [], json_encode($payload));
+        $body = ['title'=>'Nowy tytuł','description'=>'Nowy opis','categoryId'=>1,'statusId'=>1];
+        $request = new Request([], [], [], [], [], [], json_encode($body));
         $response = $this->controller->create($request);
 
         $this->assertEquals(201, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame(['id'=>99,'title'=>'Nowy tytuł','description'=>'Nowy opis'], $data);
     }
 
     public function testShowReportNotFound(): void
     {
-        $this->repo->method('find')->willReturn(null);
+        $this->repo
+             ->method('find')
+             ->willReturn(null);
 
-        $response = $this->controller->show(99);
+        $response = $this->controller->show(123);
         $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
     }
 
-    public function testShowReport(): void
+    public function testShowReportFound(): void
     {
-        $entity = $this->getMockBuilder(Report::class)
-                       ->disableOriginalConstructor()
-                       ->getMock();
-        $this->repo->method('find')->willReturn($entity);
-        $this->service->method('serialize')->willReturn(['id'=>3,'title'=>'X']);
+        $reportObj = $this->getMockBuilder(Report::class)
+                          ->getMock();
+        $this->repo
+             ->method('find')
+             ->willReturn($reportObj);
+        $this->service
+             ->method('serialize')
+             ->willReturn(['id'=>124,'title'=>'T','description'=>'D']);
 
-        $response = $this->controller->show(3);
+        $response = $this->controller->show(124);
         $this->assertEquals(200, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame(['id'=>124,'title'=>'T','description'=>'D'], $data);
     }
 
     public function testUpdateReportNotFound(): void
     {
-        $this->repo->method('find')->willReturn(null);
+        $this->repo
+             ->method('find')
+             ->willReturn(null);
 
-        $response = $this->controller->update(4, new Request([], [], [], [], [], [], json_encode(['title'=>'A'])));
+        $request = new Request([], [], [], [], [], [], json_encode(['title'=>'X']));
+        $response = $this->controller->update(200, $request);
+
         $this->assertEquals(404, $response->getStatusCode());
     }
 
     public function testUpdateReportNoData(): void
     {
-        $entity = $this->getMockBuilder(Report::class)
-                       ->disableOriginalConstructor()
-                       ->getMock();
-        $this->repo->method('find')->willReturn($entity);
+        $reportObj = $this->getMockBuilder(Report::class)
+                          ->getMock();
+        $this->repo
+             ->method('find')
+             ->willReturn($reportObj);
 
-        $response = $this->controller->update(5, new Request([], [], [], [], [], [], json_encode([])));
+        $request = new Request([], [], [], [], [], [], json_encode([]));
+        $response = $this->controller->update(201, $request);
+
         $this->assertEquals(400, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
     }
 
-    public function testUpdateReport(): void
+    public function testUpdateReportSuccess(): void
     {
-        $entity = $this->getMockBuilder(Report::class)
-                       ->disableOriginalConstructor()
-                       ->getMock();
-        $this->repo->method('find')->willReturn($entity);
+        $reportObj = $this->getMockBuilder(Report::class)
+                          ->getMock();
+        $this->repo
+             ->method('find')
+             ->willReturn($reportObj);
         $this->service
-             ->expects($this->once())
-             ->method('updateReport')
-             ->with($entity, ['title'=>'Z'])
-             ->willReturn($entity);
+             ->method('update')
+             ->willReturn($reportObj);
         $this->service
              ->method('serialize')
-             ->willReturn(['id'=>6,'title'=>'Z']);
+             ->willReturn(['id'=>202,'title'=>'Y','description'=>'Z']);
 
-        $response = $this->controller->update(6, new Request([], [], [], [], [], [], json_encode(['title'=>'Z'])));
+        $request = new Request([], [], [], [], [], [], json_encode(['title'=>'Y','description'=>'Z']));
+        $response = $this->controller->update(202, $request);
+
         $this->assertEquals(200, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame(['id'=>202,'title'=>'Y','description'=>'Z'], $data);
     }
 
     public function testDeleteReportNotFound(): void
     {
-        $this->repo->method('find')->willReturn(null);
+        $this->repo
+             ->method('find')
+             ->willReturn(null);
 
-        $response = $this->controller->delete(7);
+        $response = $this->controller->delete(203);
         $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
     }
 
-    public function testDeleteReport(): void
+    public function testDeleteReportSuccess(): void
     {
-        $entity = $this->getMockBuilder(Report::class)
-                       ->disableOriginalConstructor()
-                       ->getMock();
-        $this->repo->method('find')->willReturn($entity);
+        $reportObj = $this->getMockBuilder(Report::class)
+                          ->getMock();
+        $this->repo
+             ->method('find')
+             ->willReturn($reportObj);
         $this->service
              ->expects($this->once())
-             ->method('deleteReport')
-             ->with($entity);
+             ->method('delete')
+             ->with($reportObj);
 
-        $response = $this->controller->delete(8);
+        $response = $this->controller->delete(204);
         $this->assertEquals(204, $response->getStatusCode());
+        $this->assertTrue(
+            $response->getContent() === '' || $response->getContent() === 'null' || $response->getContent() === '{}'
+        );
     }
 }

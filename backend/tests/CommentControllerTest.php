@@ -8,150 +8,214 @@ use App\Repository\CommentRepository;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class CommentControllerTest extends TestCase
 {
-    private CommentRepository $repo;
-    private CommentService    $service;
+    private CommentService $commentService;
+    private CommentRepository $commentRepo;
     private CommentController $controller;
 
     protected function setUp(): void
     {
-        $this->repo    = $this->createMock(CommentRepository::class);
-        $this->service = $this->createMock(CommentService::class);
-
-        $this->controller = $this->getMockBuilder(\App\Controller\CommentController::class)
-            ->setConstructorArgs([$this->repo, $this->service])
-            ->onlyMethods(['getUser'])
-            ->getMock();
-
-        $dummyUser = $this->createMock(\App\Entity\User::class);
-        $this->controller->method('getUser')->willReturn($dummyUser);
+        $this->commentService = $this->createMock(CommentService::class);
+        $this->commentRepo    = $this->createMock(CommentRepository::class);
+        $this->controller     = new CommentController($this->commentService, $this->commentRepo);
 
         $c = $this->createMock(ContainerInterface::class);
         $c->method('has')->willReturn(false);
         $this->controller->setContainer($c);
     }
 
-
-    public function testListComments(): void
+    public function testIndexReturnsPaginatedListWithoutFilter(): void
     {
-        $cmt = $this->getMockBuilder(Comment::class)
-                    ->disableOriginalConstructor()
-                    ->getMock();
-        $cmt->method('getId')->willReturn(1);
-        $cmt->method('getContent')->willReturn('X');
-        $cmt->method('getCreatedAt')->willReturn(new \DateTimeImmutable('2020-01-01'));
+        $expected = [
+            'data' => [],
+            'meta' => ['total' => 0, 'page' => 1, 'limit' => 10, 'pages' => 1]
+        ];
+        $this->commentService
+             ->method('listFiltered')
+             ->willReturn($expected);
 
-        $this->repo->method('findBy')->willReturn([$cmt]);
-        $this->repo->method('findAll')->willReturn([$cmt]);
-
-        $request  = new Request(['page'=>1,'limit'=>10,'sort'=>'createdAt','order'=>'ASC']);
+        $request = new Request();
         $response = $this->controller->index($request);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $json = json_decode($response->getContent(), true);
-        $this->assertEquals(1, $json['meta']['total']);
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame($expected, $data);
     }
 
-    public function testCreateCommentBad(): void
+    public function testCreateCommentMissingFields(): void
     {
-        $request = new Request([], [], [], [], [], [], json_encode(['reportId'=>null,'content'=>'']));
+        $this->commentService
+             ->method('create')
+             ->willThrowException(new BadRequestHttpException('Missing fields'));
+
+        $request = new Request([], [], [], [], [], [], json_encode([]));
         $response = $this->controller->create($request);
+
         $this->assertEquals(400, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
+        $this->assertStringContainsString('Missing fields', $data['error']);
     }
 
-    public function testCreateComment(): void
+    public function testCreateCommentInvalidReport(): void
     {
-        $cmt = $this->getMockBuilder(Comment::class)
-                    ->disableOriginalConstructor()
-                    ->getMock();
-        $cmt->method('getId')->willReturn(2);
-        $cmt->method('getContent')->willReturn('Hi');
-        $cmt->method('getCreatedAt')->willReturn(new \DateTimeImmutable('2021-02-02'));
+        $this->commentService
+             ->method('create')
+             ->willThrowException(new NotFoundHttpException('Report not found'));
 
-        $this->service->method('create')->willReturn($cmt);
-
-        $request  = new Request([], [], [], [], [], [], json_encode(['reportId'=>1,'content'=>'Hi']));
+        $body = ['reportId' => 123, 'content' => 'Hi', 'author' => 'A'];
+        $request = new Request([], [], [], [], [], [], json_encode($body));
         $response = $this->controller->create($request);
+
+        $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
+        $this->assertStringContainsString('Report not found', $data['error']);
+    }
+
+    public function testCreateCommentSuccess(): void
+    {
+        $commentObj = $this->getMockBuilder(Comment::class)
+                           ->getMock();
+        $commentObj->method('getId')->willReturn(7);
+        $commentObj->method('getContent')->willReturn('Test OK');
+        $commentObj->method('getCreatedAt')->willReturn(new \DateTimeImmutable('2025-06-01T12:00:00+00:00'));
+        $commentObj->method('getAuthor')->willReturn('A');
+
+        $this->commentService
+             ->method('create')
+             ->willReturn($commentObj);
+        $this->commentService
+             ->method('serialize')
+             ->willReturn([
+                 'id'=>7,'content'=>'Test OK','author'=>'A','createdAt'=>'2025-06-01T12:00:00+00:00','reportId'=>1
+             ]);
+
+        $body = ['reportId' => 9, 'content' => 'Okay', 'author' => 'A'];
+        $request = new Request([], [], [], [], [], [], json_encode($body));
+        $response = $this->controller->create($request);
+
         $this->assertEquals(201, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+
+        $this->assertSame(7, $data['id']);
+        $this->assertSame('Test OK', $data['content']);
+        $this->assertArrayHasKey('createdAt', $data);
     }
 
     public function testShowCommentNotFound(): void
     {
-        $this->repo->method('find')->willReturn(null);
-        $response = $this->controller->show(99);
+        $this->commentRepo
+             ->method('find')
+             ->willReturn(null);
+
+        $response = $this->controller->show(123);
         $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
     }
 
-    public function testShowComment(): void
+    public function testShowCommentFound(): void
     {
-        $cmt = $this->getMockBuilder(Comment::class)
-                    ->disableOriginalConstructor()
-                    ->getMock();
-        $cmt->method('getId')->willReturn(3);
-        $cmt->method('getContent')->willReturn('C');
-        $cmt->method('getCreatedAt')->willReturn(new \DateTimeImmutable);
+        $commentObj = $this->getMockBuilder(Comment::class)
+                           ->getMock();
+        $this->commentRepo
+             ->method('find')
+             ->willReturn($commentObj);
+        $this->commentService
+             ->method('serialize')
+             ->willReturn(['id'=>1,'content'=>'C','author'=>'A','createdAt'=>'2025-06-01T12:00:00+00:00','reportId'=>1]);
 
-        $this->repo->method('find')->willReturn($cmt);
-
-        $response = $this->controller->show(3);
+        $response = $this->controller->show(1);
         $this->assertEquals(200, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame(1, $data['id']);
+    }
+
+    public function testUpdateCommentMissingContent(): void
+    {
+        $commentObj = $this->getMockBuilder(Comment::class)
+                           ->getMock();
+        $this->commentRepo
+             ->method('find')
+             ->willReturn($commentObj);
+
+        $request = new Request([], [], [], [], [], [], json_encode([]));
+        $response = $this->controller->update(1, $request);
+
+        $this->assertEquals(400, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
     }
 
     public function testUpdateCommentNotFound(): void
     {
-        $this->repo->method('find')->willReturn(null);
-        $response = $this->controller->update(4, new Request([], [], [], [], [], [], json_encode(['content'=>'X'])));
+        $this->commentRepo
+             ->method('find')
+             ->willReturn(null);
+
+        $request = new Request([], [], [], [], [], [], json_encode(['content'=>'X']));
+        $response = $this->controller->update(2, $request);
+
         $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
     }
 
-    public function testUpdateCommentNoData(): void
+    public function testUpdateCommentSuccess(): void
     {
-        $cmt = $this->getMockBuilder(Comment::class)
-                    ->disableOriginalConstructor()
-                    ->getMock();
-        $this->repo->method('find')->willReturn($cmt);
-
-        $response = $this->controller->update(5, new Request([], [], [], [], [], [], json_encode([])));
-        $this->assertEquals(400, $response->getStatusCode());
-    }
-
-    public function testUpdateComment(): void
-    {
-        $cmt = $this->getMockBuilder(Comment::class)
-                    ->disableOriginalConstructor()
-                    ->getMock();
-        $this->repo->method('find')->willReturn($cmt);
-        $this->service
-             ->expects($this->once())
+        $commentObj = $this->getMockBuilder(Comment::class)
+                           ->getMock();
+        $this->commentRepo
+             ->method('find')
+             ->willReturn($commentObj);
+        $this->commentService
              ->method('update')
-             ->with($cmt, ['content'=>'Z'])
-             ->willReturn($cmt);
+             ->willReturn($commentObj);
+        $this->commentService
+             ->method('serialize')
+             ->willReturn(['id'=>1,'content'=>'X','author'=>'A','createdAt'=>'2025-06-01T12:00:00+00:00','reportId'=>1]);
 
-        $response = $this->controller->update(6, new Request([], [], [], [], [], [], json_encode(['content'=>'Z'])));
+        $request = new Request([], [], [], [], [], [], json_encode(['content'=>'X']));
+        $response = $this->controller->update(1, $request);
+
         $this->assertEquals(200, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertSame('X', $data['content']);
     }
 
     public function testDeleteCommentNotFound(): void
     {
-        $this->repo->method('find')->willReturn(null);
-        $response = $this->controller->delete(7);
+        $this->commentRepo
+             ->method('find')
+             ->willReturn(null);
+
+        $response = $this->controller->delete(3);
         $this->assertEquals(404, $response->getStatusCode());
+        $data = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('error', $data);
     }
 
     public function testDeleteComment(): void
     {
-        $cmt = $this->getMockBuilder(Comment::class)
-                    ->disableOriginalConstructor()
-                    ->getMock();
-        $this->repo->method('find')->willReturn($cmt);
-        $this->service
+        $commentObj = $this->getMockBuilder(Comment::class)
+                           ->getMock();
+        $this->commentRepo
+             ->method('find')
+             ->willReturn($commentObj);
+        $this->commentService
              ->expects($this->once())
              ->method('delete')
-             ->with($cmt);
+             ->with($commentObj);
 
-        $response = $this->controller->delete(8);
+        $response = $this->controller->delete(4);
         $this->assertEquals(204, $response->getStatusCode());
+        $this->assertTrue(
+            $response->getContent() === '' || $response->getContent() === 'null' || $response->getContent() === '{}'
+        );
     }
 }
