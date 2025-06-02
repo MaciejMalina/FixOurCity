@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use OpenApi\Attributes as OA;
 
 #[Route('/api/v1/users')]
 #[IsGranted('ROLE_ADMIN')]
@@ -19,6 +20,66 @@ class UserController extends AbstractController
     public function __construct(private UserService $userService, private UserRepository $repo) {}
 
     #[Route('', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Lista użytkowników',
+        description: 'Zwraca listę użytkowników z paginacją, filtrowaniem i sortowaniem. Dostępne tylko dla admina.',
+        parameters: [
+            new OA\Parameter(name: 'page', in: 'query', required: false, schema: new OA\Schema(type: 'integer'), example: 1),
+            new OA\Parameter(name: 'limit', in: 'query', required: false, schema: new OA\Schema(type: 'integer'), example: 10),
+            new OA\Parameter(name: 'sort', in: 'query', required: false, schema: new OA\Schema(type: 'string'), example: 'u.id:ASC'),
+            new OA\Parameter(name: 'email', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'firstName', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'lastName', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Lista użytkowników',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: 'data',
+                            type: 'array',
+                            items: new OA\Items(
+                                type: 'object',
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'integer', example: 1),
+                                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@fixourcity.com'),
+                                    new OA\Property(property: 'firstName', type: 'string', example: 'Jan'),
+                                    new OA\Property(property: 'lastName', type: 'string', example: 'Kowalski'),
+                                    new OA\Property(
+                                        property: 'roles',
+                                        type: 'array',
+                                        items: new OA\Items(type: 'string'),
+                                        example: ['ROLE_USER']
+                                    ),
+                                ]
+                            )
+                        ),
+                        new OA\Property(
+                            property: 'meta',
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'page', type: 'integer', example: 1),
+                                new OA\Property(property: 'limit', type: 'integer', example: 10),
+                                new OA\Property(property: 'total', type: 'integer', example: 100),
+                                new OA\Property(property: 'pages', type: 'integer', example: 10),
+                            ]
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Brak uprawnień',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Access denied'),
+                    ]
+                )
+            )
+        ]
+    )]
     public function list(Request $request): JsonResponse
     {
         $filters = array_filter([
@@ -58,12 +119,62 @@ class UserController extends AbstractController
                 'page'  => $page,
                 'limit' => $limit,
                 'total' => $total,
-                'pages' => (int)ceil($total/$limit),
+                'pages' => (int)ceil($total / $limit),
             ]
         ]);
     }
 
     #[Route('', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Dodaj użytkownika',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email','password','firstName','lastName'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@fixourcity.com'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'P@ssw0rd!'),
+                    new OA\Property(property: 'firstName', type: 'string', example: 'Jan'),
+                    new OA\Property(property: 'lastName', type: 'string', example: 'Kowalski'),
+                    new OA\Property(
+                        property: 'roles',
+                        type: 'array',
+                        items: new OA\Items(type: 'string'),
+                        example: ['ROLE_USER']
+                    )
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Użytkownik utworzony',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@fixourcity.com'),
+                        new OA\Property(property: 'firstName', type: 'string', example: 'Jan'),
+                        new OA\Property(property: 'lastName', type: 'string', example: 'Kowalski'),
+                        new OA\Property(
+                            property: 'roles',
+                            type: 'array',
+                            items: new OA\Items(type: 'string'),
+                            example: ['ROLE_USER']
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Błędne dane',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Invalid input data'),
+                    ]
+                )
+            )
+        ]
+    )]
     public function create(Request $request): JsonResponse
     {
         $payload = json_decode($request->getContent(), true);
@@ -79,6 +190,41 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Pobierz użytkownika po ID',
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Dane użytkownika',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@fixourcity.com'),
+                        new OA\Property(property: 'firstName', type: 'string', example: 'Jan'),
+                        new OA\Property(property: 'lastName', type: 'string', example: 'Kowalski'),
+                        new OA\Property(
+                            property: 'roles',
+                            type: 'array',
+                            items: new OA\Items(type: 'string'),
+                            example: ['ROLE_USER']
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Nie znaleziono',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'User not found'),
+                    ]
+                )
+            )
+        ]
+    )]
     public function show(User $user): JsonResponse
     {
         return $this->json([
@@ -91,6 +237,56 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}', methods: ['PUT','PATCH'])]
+    #[OA\Patch(
+        summary: 'Aktualizuj użytkownika',
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email'),
+                    new OA\Property(property: 'firstName', type: 'string'),
+                    new OA\Property(property: 'lastName', type: 'string'),
+                    new OA\Property(
+                        property: 'roles',
+                        type: 'array',
+                        items: new OA\Items(type: 'string')
+                    )
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Zaktualizowano użytkownika',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@fixourcity.com'),
+                        new OA\Property(property: 'firstName', type: 'string', example: 'Jan'),
+                        new OA\Property(property: 'lastName', type: 'string', example: 'Kowalski'),
+                        new OA\Property(
+                            property: 'roles',
+                            type: 'array',
+                            items: new OA\Items(type: 'string'),
+                            example: ['ROLE_USER']
+                        ),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Nie znaleziono',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'User not found'),
+                    ]
+                )
+            )
+        ]
+    )]
     public function update(User $user, Request $request): JsonResponse
     {
         $payload = json_decode($request->getContent(), true);
@@ -106,6 +302,27 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}', methods: ['DELETE'])]
+    #[OA\Delete(
+        summary: 'Usuń użytkownika',
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(
+                response: 204,
+                description: 'Usunięto użytkownika'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Nie znaleziono',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'User not found'),
+                    ]
+                )
+            )
+        ]
+    )]
     public function delete(User $user): JsonResponse
     {
         $this->userService->delete($user);

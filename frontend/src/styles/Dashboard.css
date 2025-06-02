@@ -131,13 +131,16 @@ body {
     max-width: 100px;
     margin-bottom: 0;
   }
+ 
   .dashboard__sidebar nav ul {
     display: flex;
+    flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
+    gap: 6px;
   }
   .dashboard__sidebar nav ul > li {
-    margin: 6px;
+    margin: 0;
     width: auto;
   }
   .dashboard__logout {

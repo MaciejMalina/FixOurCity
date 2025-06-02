@@ -71,6 +71,13 @@ class AuthControllerTest extends TestCase
         $resp = new JsonResponse(null, 204);
         $this->service->method('logout')->willReturn($resp);
 
+        // Zamockuj getUser() w kontrolerze:
+        $this->controller = $this->getMockBuilder(AuthController::class)
+            ->setConstructorArgs([$this->service])
+            ->onlyMethods(['getUser'])
+            ->getMock();
+        $this->controller->method('getUser')->willReturn(null);
+
         $response = $this->controller->logout(new Request());
         $this->assertEquals(204, $response->getStatusCode());
     }

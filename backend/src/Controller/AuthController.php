@@ -32,8 +32,25 @@ class AuthController extends AbstractController
             )
         ),
         responses: [
-            new OA\Response(response: 201, description: 'Użytkownik zarejestrowany'),
-            new OA\Response(response: 400, description: 'Błędne dane wejściowe')
+            new OA\Response(
+                response: 201,
+                description: 'Użytkownik zarejestrowany',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id',    type: 'integer', example: 1),
+                        new OA\Property(property: 'email', type: 'string',  format: 'email', example: 'user@example.com'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Błędne dane wejściowe',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Invalid input data'),
+                    ]
+                )
+            )
         ]
     )]
     public function register(Request $request): JsonResponse
@@ -59,8 +76,24 @@ class AuthController extends AbstractController
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: 'Zalogowano, ustawiono ciasteczka'),
-            new OA\Response(response: 401, description: 'Nieprawidłowe dane logowania')
+            new OA\Response(
+                response: 200,
+                description: 'Zalogowano, ustawiono ciasteczka',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'token', type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...')
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'Nieprawidłowe dane logowania',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Invalid credentials')
+                    ]
+                )
+            )
         ]
     )]
     public function login(Request $request): JsonResponse
@@ -73,8 +106,24 @@ class AuthController extends AbstractController
         summary: 'Odświeżenie access tokena przy pomocy refresh tokena',
         description: 'Refresh token czytany z HttpOnly cookie',
         responses: [
-            new OA\Response(response: 200, description: 'Nowy access token, odświeżono ciasteczka'),
-            new OA\Response(response: 401, description: 'Brak lub nieważny refresh token')
+            new OA\Response(
+                response: 200,
+                description: 'Nowy access token, odświeżono ciasteczka',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'token', type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...')
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'Brak lub nieważny refresh token',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Invalid or expired refresh token')
+                    ]
+                )
+            )
         ]
     )]
     public function refresh(Request $request): JsonResponse
@@ -87,8 +136,19 @@ class AuthController extends AbstractController
         summary: 'Wylogowanie użytkownika',
         description: 'Blacklistuje tokeny i usuwa ciasteczka',
         responses: [
-            new OA\Response(response: 204, description: 'Wylogowano pomyślnie'),
-            new OA\Response(response: 401, description: 'Brak ważnego refresh tokena')
+            new OA\Response(
+                response: 204,
+                description: 'Wylogowano pomyślnie'
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'Brak ważnego refresh tokena',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Brak ważnego refresh tokena')
+                    ]
+                )
+            )
         ]
     )]
     public function logout(Request $request): JsonResponse
@@ -115,7 +175,15 @@ class AuthController extends AbstractController
                     ]
                 )
             ),
-            new OA\Response(response: 401, description: 'Brak autoryzacji')
+            new OA\Response(
+                response: 401,
+                description: 'Brak autoryzacji',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Not authenticated')
+                    ]
+                )
+            )
         ]
     )]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
