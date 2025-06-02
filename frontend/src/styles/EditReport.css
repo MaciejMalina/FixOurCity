@@ -1,0 +1,209 @@
+/* ------------------ EditReport.css ------------------ */
+
+/* -- Zmienne globalne (jeżeli nie są już gdzieś w projekcie) -- */
+:root {
+  --main-bg: #f7f9fa;
+  --main-accent: #2c9c87;
+  --main-accent-dark: #21796a;
+  --main-text: #222;
+  --error-color: #d32f2f;
+  --container-bg: #ffffff;
+  --border-gray: #bbb;
+  --border-light: #e0e0e0;
+  --shadow-light: rgba(44, 156, 135, 0.07);
+  --radius: 8px;
+  --spacing: 1rem;
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* -- Globalnie, jeśli nie jest ustawione gdzie indziej -- */
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background: var(--main-bg);
+  color: var(--main-text);
+}
+
+/* -- Kontener całego formularza -- */
+.edit-report-container {
+  max-width: 600px;                     /* ograniczona szerokość */
+  margin: 2rem auto;                    /* środek poziomo + odstęp od góry */
+  background: var(--container-bg);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 12px var(--shadow-light);
+  padding: calc(var(--spacing) * 1.5);
+}
+
+/* -- Nagłówek formularza -- */
+.edit-report-container h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: var(--main-accent-dark);
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+/* -- Sam formularz -- */
+.edit-report-container form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+}
+
+/* -- Etykieta (label) -- */
+.edit-report-container label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: var(--main-accent-dark);
+  font-size: 1rem;
+}
+
+/* -- Style wspólne dla input/textarea/select -- */
+.edit-report-container input[type="text"],
+.edit-report-container textarea,
+.edit-report-container select {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--border-gray);
+  border-radius: 6px;
+  box-sizing: border-box;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.edit-report-container input[type="text"]:focus,
+.edit-report-container textarea:focus,
+.edit-report-container select:focus {
+  outline: none;
+  border-color: var(--main-accent);
+}
+
+/* -- Dodatkowe ustawienia dla <textarea> -- */
+.edit-report-container textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* -- Przycisk „Zapisz” i „Anuluj” -- */
+.buttons-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.edit-button,
+.cancel-button {
+  flex: 1; /* równomierna szerokość */
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.edit-button {
+  background: var(--main-accent);
+  color: #fff;
+}
+
+.edit-button:hover {
+  background: var(--main-accent-dark);
+  transform: translateY(-1px);
+}
+
+.edit-button:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cancel-button {
+  background: #f0f0f0;
+  color: var(--main-text);
+}
+
+.cancel-button:hover {
+  background: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+/* -- Komunikat błędu wyświetlany wewnątrz formularza -- */
+.edit-report-error {
+  color: var(--error-color);
+  background: #fff0f0;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 0.8rem;
+}
+
+/* -- Komunikat „Ładowanie...” lub „Nie znaleziono” -- */
+.edit-report-container .loading-text,
+.edit-report-container .not-found-text {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #666;
+  margin: 2rem 0;
+}
+
+/* ---------------- Responsywność ------------------ */
+
+/* Do 800px – zmniejszenie paddingów i font-size */
+@media (max-width: 800px) {
+  .edit-report-container {
+    margin: 1.5rem 1rem;
+    padding: 1rem;
+  }
+  .edit-report-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .edit-report-container label {
+    font-size: 0.95rem;
+  }
+  .edit-report-container input[type="text"],
+  .edit-report-container textarea,
+  .edit-report-container select {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.95rem;
+  }
+  .edit-button,
+  .cancel-button {
+    font-size: 0.95rem;
+    padding: 0.6rem 0.8rem;
+  }
+}
+
+/* Do 480px – jeszcze mniejsze marginesy i czcionki */
+@media (max-width: 480px) {
+  .edit-report-container {
+    margin: 1rem 0.5rem;
+    padding: 0.8rem;
+  }
+  .edit-report-container h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.8rem;
+  }
+  .edit-report-container label {
+    font-size: 0.9rem;
+  }
+  .edit-report-container input[type="text"],
+  .edit-report-container textarea,
+  .edit-report-container select {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+  }
+  .edit-button,
+  .cancel-button {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.7rem;
+  }
+}

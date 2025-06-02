@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import '../../styles/EditReport.css';
 
 export default function EditReport() {
   const { id } = useParams();
@@ -83,84 +84,88 @@ export default function EditReport() {
   if (!report) return null;
 
   return (
-    <div style={{ maxWidth: 600, margin: "2rem auto", background: "#fff", borderRadius: 10, padding: 24 }}>
-      <h2>Edytuj zgłoszenie</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="edit-report-container">
+        <h2>Edytuj zgłoszenie</h2>
+        <form onSubmit={handleSubmit}>
         <div>
-          <label>Tytuł:<br />
+            <label>Tytuł:<br />
             <input
-              type="text"
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              required
-              style={{ width: "100%" }}
+                type="text"
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+                required
             />
-          </label>
+            </label>
         </div>
         <div>
-          <label>Opis:<br />
+            <label>Opis:<br />
             <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              required
-              style={{ width: "100%", minHeight: 80 }}
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                required
             />
-          </label>
+            </label>
         </div>
         <div>
-          <label>Kategoria:<br />
+            <label>Kategoria:<br />
             <select name="categoryId" value={form.categoryId} onChange={handleChange} required>
-              <option value="">-- wybierz --</option>
-              {categories.map(c => (
+                <option value="">-- wybierz --</option>
+                {categories.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+                ))}
             </select>
-          </label>
+            </label>
         </div>
         <div>
-          <label>Status:<br />
+            <label>Status:<br />
             <select name="statusId" value={form.statusId} onChange={handleChange} required>
-              <option value="">-- wybierz --</option>
-              {statuses.map(s => (
+                <option value="">-- wybierz --</option>
+                {statuses.map(s => (
                 <option key={s.id} value={s.id}>{s.label}</option>
-              ))}
+                ))}
             </select>
-          </label>
+            </label>
         </div>
         <div>
-          <label>Szerokość geo:<br />
+            <label>Szerokość geo:<br />
             <input
-              type="text"
-              name="latitude"
-              value={form.latitude || ""}
-              onChange={handleChange}
-              style={{ width: "100%" }}
+                type="text"
+                name="latitude"
+                value={form.latitude || ""}
+                onChange={handleChange}
             />
-          </label>
+            </label>
         </div>
         <div>
-          <label>Długość geo:<br />
+            <label>Długość geo:<br />
             <input
-              type="text"
-              name="longitude"
-              value={form.longitude || ""}
-              onChange={handleChange}
-              style={{ width: "100%" }}
+                type="text"
+                name="longitude"
+                value={form.longitude || ""}
+                onChange={handleChange}
             />
-          </label>
+            </label>
         </div>
-        <div style={{ marginTop: 16 }}>
-          <button type="submit" disabled={saving}>
+        <div className="buttons-row">
+            <button
+            type="submit"
+            className="edit-button"
+            disabled={saving}
+            >
             {saving ? "Zapisywanie..." : "Zapisz"}
-          </button>
-          <button type="button" style={{ marginLeft: 12 }} onClick={() => navigate("/admin")}>
+            </button>
+            <button
+            type="button"
+            className="cancel-button"
+            onClick={() => navigate("/admin")}
+            >
             Anuluj
-          </button>
+            </button>
         </div>
-        {error && <div style={{ color: "crimson", marginTop: 10 }}>{error}</div>}
-      </form>
+        {error && <div className="edit-report-error">{error}</div>}
+        </form>
     </div>
-  );
+    );
 }

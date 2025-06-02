@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../../styles/UserList.css";
 
 export default function UsersList() {
   const [users, setUsers] = useState([]);
@@ -14,17 +15,30 @@ export default function UsersList() {
       .then(data => setUsers(data.data || []));
   }, []);
 
-  return (
-    <div>
+    return (
+    <div className="users-container">
       <h2>Użytkownicy</h2>
-      <ul>
-        {users.map(u => (
-          <li key={u.id}>
-            {u.email} ({u.roles.join(', ')})
-            <button onClick={() => navigate(`/admin/edit-user/${u.id}`)}>Edytuj</button>
-          </li>
-        ))}
-      </ul>
+
+      {users.length === 0 ? (
+        <div className="users-empty">Brak użytkowników.</div>
+      ) : (
+        <ul className="users-list">
+          {users.map(u => (
+            <li key={u.id}>
+              <div className="user-info">
+                <span className="user-email">{u.email}</span>
+                <span className="user-roles">({u.roles.join(", ")})</span>
+              </div>
+              <button
+                className="user-edit-btn"
+                onClick={() => navigate(`/admin/edit-user/${u.id}`)}
+              >
+                Edytuj
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
