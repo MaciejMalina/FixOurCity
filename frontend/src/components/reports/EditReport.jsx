@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import '../../styles/EditReport.css';
+import Loading from "../ui/Loading";
 
 export default function EditReport() {
   const { id } = useParams();
@@ -79,7 +80,7 @@ export default function EditReport() {
     }
   };
 
-  if (loading) return <div>Ładowanie...</div>;
+  if (loading) return <Loading />;
   if (error) return <div style={{ color: "crimson" }}>{error}</div>;
   if (!report) return null;
 

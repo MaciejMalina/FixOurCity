@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "../../styles/ReportDetails.css";
+import Loading from "../ui/Loading";
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -44,7 +45,7 @@ export default function ReportDetails() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div style={{ textAlign: "center", margin: "2rem" }}>Ładowanie...</div>;
+  if (loading) return <Loading />;
   if (error) return (
     <div style={{ textAlign: "center", margin: "2rem", color: "crimson" }}>
       {error} <br />

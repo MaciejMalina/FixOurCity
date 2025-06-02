@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/UserList.css";
+import Loading from "../ui/Loading";
 
 export default function UsersList() {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -12,8 +14,13 @@ export default function UsersList() {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => res.json())
-      .then(data => setUsers(data.data || []));
+      .then(data => {
+        setUsers(data.data || []);
+        setLoading(false);
+      });
   }, []);
+
+  if (loading) return <Loading />;
 
     return (
     <div className="users-container">

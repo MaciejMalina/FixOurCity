@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchReports } from "../../api/reports.js";
 import "../../styles/ReportList.css";
 import SidebarMenu from "../SidebarMenu";
+import Loading from "../ui/Loading";
 
 export default function ReportList() {
   const [reports, setReports] = useState([]);
@@ -24,7 +25,7 @@ export default function ReportList() {
   return (
     <SidebarMenu>
       {loading ? (
-        <div>Ładowanie...</div>
+        <Loading />
       ) : error ? (
         <div className="error-text">{error}</div>
       ) : reports.length === 0 ? (

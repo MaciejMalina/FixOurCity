@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Loading from "../ui/Loading";
 
 export default function AdminReportList() {
   const [reports, setReports] = useState([]);
@@ -29,7 +30,7 @@ export default function AdminReportList() {
     <div>
       <h2>Lista zgłoszeń</h2>
       {loading ? (
-        <div>Ładowanie...</div>
+        <Loading />
       ) : error ? (
         <div className="error-text">{error}</div>
       ) : reports.length === 0 ? (
