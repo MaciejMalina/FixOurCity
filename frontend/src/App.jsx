@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import Login           from './components/auth/Login';
 import Register        from './components/auth/Register';
@@ -9,6 +9,7 @@ import ReportForm      from './components/reports/ReportForm';
 import ReportDetails   from './components/reports/ReportDetails';
 import NotFound        from './components/NotFound';
 import AccessDenied    from './components/AccessDenied';
+import EditUser        from './components/users/EditUser';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -19,6 +20,7 @@ function PrivateRoute({ children }) {
 
 export default function App() {
   return (
+    <BrowserRouter>
       <Routes>
         <Route path="/login"    element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -28,9 +30,11 @@ export default function App() {
         <Route path="/new-report"element={<PrivateRoute><ReportForm/></PrivateRoute>} />
         <Route path="/admin"     element={<PrivateRoute><AdminDashboard/></PrivateRoute>} />
         <Route path="/reports/:id" element={<PrivateRoute><ReportDetails/></PrivateRoute>} />
+        <Route path="/admin/edit-user/:id" element={<PrivateRoute><EditUser/></PrivateRoute>} />
 
         <Route path="/access-denied" element={<AccessDenied />} />
         <Route path="*"              element={<NotFound />} />
       </Routes>
+    </BrowserRouter>
   );
 }

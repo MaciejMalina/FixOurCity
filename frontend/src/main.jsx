@@ -8,9 +8,7 @@ import UnexpectedError from './components/ui/UnexpectedError';
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary FallbackComponent={UnexpectedError}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <App />
     </ErrorBoundary>
   </React.StrictMode>
 );

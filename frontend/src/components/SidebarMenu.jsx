@@ -53,7 +53,6 @@ export default function SidebarMenu({ children, reports = [] }) {
             </li>
             <li onClick={() => navigate("/new-report")}>Dodaj nowe zgłoszenie</li>
             <li onClick={() => navigate("/admin")}>Panel administratora</li>
-            <li onClick={() => navigate("/settings")}>Ustawienia</li>
           </ul>
         </nav>
         <button className="dashboard__logout" onClick={handleLogout}>

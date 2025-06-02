@@ -7,6 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Auth')]
@@ -94,5 +95,42 @@ class AuthController extends AbstractController
     {
         $user = $this->getUser();
         return $this->authService->logout($request, $user);
+    }
+
+    #[Route('/me', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Pobierz dane aktualnie zalogowanego użytkownika',
+        description: 'Zwraca email, imię, nazwisko i role aktualnie zalogowanego użytkownika na podstawie JWT.',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Dane użytkownika',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id',        type: 'integer', example: 1),
+                        new OA\Property(property: 'email',     type: 'string',  example: 'admin@fixourcity.com'),
+                        new OA\Property(property: 'firstName', type: 'string',  example: 'Jan'),
+                        new OA\Property(property: 'lastName',  type: 'string',  example: 'Kowalski'),
+                        new OA\Property(property: 'roles',     type: 'array',   items: new OA\Items(type: 'string'), example: ['ROLE_ADMIN'])
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: 'Brak autoryzacji')
+        ]
+    )]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function me(): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->json(['error' => 'Not authenticated'], 401);
+        }
+        return $this->json([
+            'id'        => $user->getId(),
+            'email'     => $user->getEmail(),
+            'firstName' => $user->getFirstName(),
+            'lastName'  => $user->getLastName(),
+            'roles'     => $user->getRoles(),
+        ]);
     }
 }

@@ -26,8 +26,10 @@ class UserController extends AbstractController
             'firstName' => $request->query->get('firstName'),
             'lastName'  => $request->query->get('lastName'),
         ]);
-        $sort = $request->query->getAlnum('sort', 'u.id:ASC');
-        [ $field, $dir ] = explode(':', $sort);
+        $sort = $request->query->get('sort', 'u.id:ASC');
+        $parts = explode(':', $sort);
+        $field = $parts[0] ?? 'u.id';
+        $dir   = $parts[1] ?? 'ASC';
         $page  = (int)$request->query->get('page', 1);
         $limit = (int)$request->query->get('limit', 10);
 
