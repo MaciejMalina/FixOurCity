@@ -10,6 +10,7 @@ import ReportDetails   from './components/reports/ReportDetails';
 import NotFound        from './components/NotFound';
 import AccessDenied    from './components/AccessDenied';
 import EditUser        from './components/users/EditUser';
+import EditReport      from './components/reports/EditReport';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/admin"     element={<PrivateRoute><AdminDashboard/></PrivateRoute>} />
         <Route path="/reports/:id" element={<PrivateRoute><ReportDetails/></PrivateRoute>} />
         <Route path="/admin/edit-user/:id" element={<PrivateRoute><EditUser/></PrivateRoute>} />
+        <Route path="/admin/edit-report/:id" element={<PrivateRoute><EditReport/></PrivateRoute>} />
 
         <Route path="/access-denied" element={<AccessDenied />} />
         <Route path="*"              element={<NotFound />} />

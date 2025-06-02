@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReportsList from '../reports/ReportList';
+import AdminReportList from '../reports/AdminReportList';
 import UsersList from '../users/UserList';
 import '../../styles/AdminDashboard.css';
 
@@ -43,7 +43,10 @@ export default function AdminDashboard() {
         </button>
       </aside>
       <main className="admin__content">
-        {tab === 'list' && <ReportsList adminMode />}
+        <button onClick={() => navigate("/dashboard")} style={{ marginBottom: 16 }}>
+          ← Cofnij
+        </button>
+        {tab === 'list' && <AdminReportList />}
         {tab === 'users' && <UsersList />}
       </main>
     </div>

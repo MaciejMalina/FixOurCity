@@ -13,6 +13,18 @@ function clearAllCookies() {
 export default function SidebarMenu({ children, reports = [] }) {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
+  const [isAdmin, setIsAdmin] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!token) return;
+    fetch('/api/v1/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include'
+    })
+      .then(res => res.json())
+      .then(data => setIsAdmin(data.roles?.includes('ROLE_ADMIN')))
+      .catch(() => setIsAdmin(false));
+  }, [token]);
 
   const handleLogout = async () => {
     try {
@@ -52,7 +64,9 @@ export default function SidebarMenu({ children, reports = [] }) {
               )}
             </li>
             <li onClick={() => navigate("/new-report")}>Dodaj nowe zgłoszenie</li>
-            <li onClick={() => navigate("/admin")}>Panel administratora</li>
+            {isAdmin && (
+              <li onClick={() => navigate("/admin")}>Panel administratora</li>
+            )}
           </ul>
         </nav>
         <button className="dashboard__logout" onClick={handleLogout}>
