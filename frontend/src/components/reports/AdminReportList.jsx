@@ -43,7 +43,7 @@ export default function AdminReportList() {
               <small>
                 {new Date(r.createdAt).toLocaleString()} | Kategoria: {r.category?.name} | Status: {r.status?.label}
               </small>
-              <button style={{ marginLeft: 16 }} onClick={() => navigate(`/admin/edit-report/${r.id}`)}>
+              <button className="user-edit-btn" onClick={() => navigate(`/admin/edit-report/${r.id}`)}>
                 Edytuj
               </button>
             </li>

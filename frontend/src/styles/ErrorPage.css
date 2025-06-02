@@ -1,15 +1,97 @@
-.error-page {
-  text-align: center;
-  padding: 4rem 1rem;
-  color: #333;
+:root {
+  --error-bg: #fdf2f0;
+  --error-accent: #e53e3e;
+  --text-dark: #2d2d2d;
+  --text-light: #555;
+  --btn-bg: #e53e3e;
+  --btn-bg-hover: #c53030;
+  --btn-text: #fff;
+  --radius: 8px;
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-.error-page h1 { font-size: 5rem; margin: 0; }
-.error-page h2 { margin: 0.5rem 0; }
-.error-page p { margin: 1rem 0; }
-.error-page button {
+
+.error-page,
+.error-page * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.error-page {
+  min-height: 100vh;
+  background: var(--error-bg);
+  font-family: var(--font-family);
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.error-page__container {
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  padding: 2rem 1.5rem;
+}
+
+.error-page__status {
+  font-size: 6rem;
+  font-weight: 800;
+  color: var(--error-accent);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.error-page__title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+
+.error-page__message {
+  font-size: 1rem;
+  color: var(--text-light);
+  margin-bottom: 1.8rem;
+  line-height: 1.4;
+}
+
+.error-page__back {
+  display: inline-block;
+  text-decoration: none;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font-weight: 600;
   padding: 0.75rem 1.5rem;
-  background: #2a9d8f;
-  color: white;
-  border: none;
-  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background 0.2s, transform 0.1s;
+}
+
+.error-page__back:hover {
+  background: var(--btn-bg-hover);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 600px) {
+  .error-page__status {
+    font-size: 4.5rem;
+  }
+  .error-page__title {
+    font-size: 1.5rem;
+  }
+  .error-page__container {
+    padding: 1.5rem 1rem;
+  }
+  .error-page__message {
+    font-size: 0.95rem;
+    margin-bottom: 1.2rem;
+  }
+  .error-page__back {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+  }
 }

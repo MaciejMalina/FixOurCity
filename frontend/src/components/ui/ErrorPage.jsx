@@ -1,15 +1,18 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import '../../styles/ErrorPage.css';
 
-export default function ErrorPage({ status, title, message, backTo = '/' }) {
-  const navigate = useNavigate();
+export default function ErrorPage({ status, title, message, backTo }) {
   return (
     <div className="error-page">
-      <h1>{status}</h1>
-      <h2>{title}</h2>
-      <p>{message}</p>
-      <button onClick={() => navigate(backTo)}>Wróć</button>
+      <div className="error-page__container">
+        <div className="error-page__status">{status}</div>
+        <div className="error-page__title">{title}</div>
+        <div className="error-page__message">{message}</div>
+        <Link to={backTo} className="error-page__back">
+          Powrót do strony głównej
+        </Link>
+      </div>
     </div>
   );
 }

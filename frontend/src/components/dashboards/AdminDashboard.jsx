@@ -43,7 +43,7 @@ export default function AdminDashboard() {
         </button>
       </aside>
       <main className="admin__content">
-        <button onClick={() => navigate("/dashboard")} style={{ marginBottom: 16 }}>
+        <button onClick={() => navigate("/dashboard")} className="user-edit-btn">
           ← Cofnij
         </button>
         {tab === 'list' && <AdminReportList />}
