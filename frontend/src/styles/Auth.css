@@ -92,7 +92,6 @@
   font-size: 13px;
 }
 
-/* Mobile */
 @media (max-width: 900px) {
   .auth-box {
     flex-direction: column;

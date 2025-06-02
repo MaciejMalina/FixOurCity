@@ -7,18 +7,29 @@
   padding: 2rem 1.5rem;
   font-family: 'Segoe UI', Arial, sans-serif;
 }
-.back-btn {
-  background: none;
-  border: none;
-  color: #2ca39c;
-  font-size: 1.1rem;
-  cursor: pointer;
+
+.back-button-wrapper {
+  text-align: left;
   margin-bottom: 1rem;
-  transition: color 0.2s;
 }
-.back-btn:hover {
-  color: #21796a;
+
+.back-button {
+  background: transparent;
+  border: none;
+  color: var(--main-accent-dark);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
 }
+
+.back-button:hover {
+  background: var(--main-accent);
+  color: #fff;
+}
+
 .details-meta {
   display: flex;
   gap: 1rem;

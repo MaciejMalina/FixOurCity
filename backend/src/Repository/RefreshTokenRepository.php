@@ -24,7 +24,8 @@ class RefreshTokenRepository extends ServiceEntityRepository
 
     public function revoke(RefreshToken $rt): void
     {
-        $this->_em->remove($rt);
-        $this->_em->flush();
+        $em = $this->getEntityManager();
+        $em->remove($rt);
+        $em->flush();
     }
 }

@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../../styles/Dashboard.css';
 import Loading from "../ui/Loading";
+import SidebarMenu from "../SidebarMenu";
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -40,7 +41,6 @@ export default function Dashboard() {
         );
         if (!res.ok) throw new Error(`Fetch error ${res.status}`);
         const { data } = await res.json();
-        // Filtrowanie po statusie
         const filtered = data.filter(r =>
           r.status?.label === "Nowe" || r.status?.label === "W trakcie realizacji"
         );
@@ -60,75 +60,34 @@ export default function Dashboard() {
     fetchReports();
   }, [navigate, token]);
 
-  const handleLogout = async () => {
-    try {
-      await fetch('http://localhost:8000/api/v1/auth/logout', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    } catch (e) {
-      console.error('Logout error:', e);
-    }
-    localStorage.clear();
-    navigate('/login');
-  };
-
   if (loading) return <Loading />;
   if (error)    return <div className="dashboard-error">Coś poszło nie tak :(</div>;
 
   return (
-    <div className="dashboard">
-      <aside className="dashboard__sidebar">
-        <div className="logo" onClick={() => navigate('/')}>
-          <img src="/logo.png" alt="FixOurCity" />
-        </div>
-        <nav>
-          <ul>
-            <li onClick={() => navigate('/reports')}>
-              Lista zgłoszeń
-              <ul className="dashboard__recent">
-                {reports.map(r => (
-                  <li key={r.id} onClick={() => navigate(`/reports/${r.id}`)}>
-                    • {r.title || `#${r.id}`}
-                  </li>
-                ))}
-              </ul>
-            </li>
-            <li onClick={() => navigate('/new-report')}>Dodaj nowe zgłoszenie</li>
-            <li onClick={() => navigate('/admin')}>Panel administratora</li>
-            <li onClick={() => navigate('/settings')}>Ustawienia</li>
-          </ul>
-        </nav>
-        <button className="dashboard__logout" onClick={handleLogout}>
-          Wyloguj
-        </button>
-      </aside>
-
-      <main className="dashboard__map">
-        <MapContainer center={[50.06465, 19.94498]} zoom={12}>
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {reports.map(r => (
-            r.latitude && r.longitude && (
-              <Marker
-                key={r.id}
-                position={[r.latitude, r.longitude]}
-              >
-                <Popup>
-                  <strong>{r.title}</strong><br/>
-                  {r.description?.slice(0, 50)}…
-                  <br/>
-                  <button onClick={() => navigate(`/reports/${r.id}`)}>
-                    Szczegóły
-                  </button>
-                </Popup>
-              </Marker>
-            )
-          ))}
-        </MapContainer>
-      </main>
-    </div>
+    <SidebarMenu reports={reports}>
+      <MapContainer center={[50.06465, 19.94498]} zoom={12}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {reports.map(r => (
+          r.latitude && r.longitude && (
+            <Marker
+              key={r.id}
+              position={[r.latitude, r.longitude]}
+            >
+              <Popup>
+                <strong>{r.title}</strong><br/>
+                {r.description?.slice(0, 50)}…
+                <br/>
+                <button onClick={() => navigate(`/reports/${r.id}`)}>
+                  Szczegóły
+                </button>
+              </Popup>
+            </Marker>
+          )
+        ))}
+      </MapContainer>
+    </SidebarMenu>
   );
 }

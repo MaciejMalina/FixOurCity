@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { useNavigate } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "../../styles/ReportForm.css";
@@ -24,11 +25,12 @@ function LocationSelector({ position, setPosition }) {
 }
 
 export default function ReportForm({ onSuccess }) {
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [imageFile, setImageFile] = useState(null);
+  const [, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [position, setPosition] = useState([50.06465, 19.94498]);
 
@@ -137,8 +139,15 @@ export default function ReportForm({ onSuccess }) {
 
   return (
     <div className="report-form-container">
+      <div className="back-button-wrapper">
+        <button
+          type="button"
+          className="back-button"
+          onClick={() => navigate(-1)}>
+          ← Wróć
+        </button>
+      </div>
       <h2 className="form-heading">Dodaj nowe zgłoszenie</h2>
-
       <form onSubmit={handleSubmit} className="report-form">
         <div className="upload-and-info-wrapper">
           <div className="photo-upload-box">

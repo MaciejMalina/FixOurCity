@@ -118,7 +118,7 @@ class AuthService
             ->headers->setCookie($refreshCookie);
     }
 
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request, ?User $user = null): JsonResponse
     {
         $refreshValue = $request->cookies->get('REFRESH_TOKEN');
         if ($rt = $this->rtRepo->findValid($refreshValue)) {
@@ -132,8 +132,7 @@ class AuthService
             $black = new BlacklistedToken();
             $black
                 ->setToken($accessValue)
-                ->setExpiredAt((new \DateTimeImmutable())->modify('+1 hour'))
-                ->setUser($this->getUser());
+                ->setUser($user);
             $this->em->persist($black);
         }
 

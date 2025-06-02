@@ -55,7 +55,14 @@ export default function ReportDetails() {
 
   return (
     <div className="report-details-container">
-      <button className="back-btn" onClick={() => navigate("/reports")}>← Wróć do listy</button>
+      <div className="back-button-wrapper">
+        <button
+          type="button"
+          className="back-button"
+          onClick={() => navigate(-1)}>
+          ← Wróć
+        </button>
+      </div>
       <h1>{report.title}</h1>
       <div className="details-meta">
         <span className="details-category">{report.category?.name}</span>
