@@ -1,17 +1,116 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f7f9fa;
+  color: #222;
+}
+
 .reports-list {
   list-style: none;
   padding: 0;
+  margin: 1rem auto;
+  max-width: 800px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(44, 156, 135, 0.07);
+  overflow: hidden;
 }
+
 .reports-list li {
-  padding: 1rem;
-  border-bottom: 1px solid #ddd;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
 }
-.error-text {
-  color: crimson;
-  margin-bottom: 12px;
+
+.reports-list li:last-of-type {
+  border-bottom: none;
+}
+
+.reports-list li:hover {
+  background-color: #f0fdfc;
+  transform: translateY(-2px);
+}
+
+.reports-list li strong {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #21796a;
+  margin-bottom: 0.3rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reports-list li span {
+  display: block;
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  max-height: calc(1.4em * 3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reports-list li small {
+  display: block;
+  font-size: 0.85rem;
+  color: #888;
+  line-height: 1.3;
+}
+
+.report-list__status {
+  margin: 2rem auto;
+  max-width: 800px;
   text-align: center;
-  font-weight: bold;
+  font-size: 1.1rem;
+  color: #444;
 }
+.report-list__status.error-text {
+  color: #d32f2f;
+}
+
+.error-text {
+  color: #d32f2f;
+  margin: 1rem auto;
+  text-align: center;
+  font-weight: 600;
+  max-width: 800px;
+}
+
+@media (max-width: 900px) {
+  .reports-list {
+    margin: 1rem 0.5rem;
+    max-width: none;
+  }
+  .reports-list li {
+    padding: 0.8rem 1rem;
+  }
+  .reports-list li strong {
+    font-size: 1.05rem;
+  }
+  .reports-list li span {
+    font-size: 0.9rem;
+  }
+  .reports-list li small {
+    font-size: 0.8rem;
+  }
+}
+
 @media (max-width: 480px) {
-  .reports-list li { font-size: 0.9rem; }
+  .reports-list li {
+    padding: 0.6rem 0.8rem;
+  }
+  .reports-list li strong {
+    font-size: 1rem;
+  }
+  .reports-list li span {
+    font-size: 0.85rem;
+  }
+  .reports-list li small {
+    font-size: 0.75rem;
+  }
 }

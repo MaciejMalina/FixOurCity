@@ -16,14 +16,6 @@ class UserService
         private UserPasswordHasherInterface $passwordHasher
     ) {}
 
-    /**
-     * Zwraca Doctrine Paginator z listą użytkowników zgodnie z filtrami, paginacją i sortowaniem.
-     *
-     * @param array $filters  ['email' => string, 'firstName' => string, 'lastName' => string]
-     * @param array $sort     ['u.email' => 'ASC', ...]
-     * @param int   $page     numer strony (1-based)
-     * @param int   $limit    liczba rekordów na stronę
-     */
     public function list(
         array $filters = [],
         array $sort = ['u.id' => 'ASC'],
@@ -33,11 +25,6 @@ class UserService
         return $this->userRepository->findPaginated($filters, $sort, $page, $limit);
     }
 
-    /**
-     * Tworzy nowego użytkownika.
-     *
-     * @throws \InvalidArgumentException gdy email jest już zajęty
-     */
     public function create(array $data): User
     {
         $user = new User();

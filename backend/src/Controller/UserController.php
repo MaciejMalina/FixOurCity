@@ -31,7 +31,6 @@ class UserController extends AbstractController
         $page  = (int)$request->query->get('page', 1);
         $limit = (int)$request->query->get('limit', 10);
 
-        /** @var Paginator $paginator */
         $paginator = $this->userService->list(
             $filters,
             [$field => $dir],
