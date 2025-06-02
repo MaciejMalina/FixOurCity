@@ -132,6 +132,7 @@ class AuthService
             $black = new BlacklistedToken();
             $black
                 ->setToken($accessValue)
+                ->setExpiredAt((new \DateTimeImmutable())->modify('+1 hour'))
                 ->setUser($user);
             $this->em->persist($black);
         }
@@ -148,8 +149,8 @@ class AuthService
             ->withPath('/');
 
         $resp = new JsonResponse(null, 204);
-        return $resp
-            ->headers->setCookie($removeAccess)
-            ->headers->setCookie($removeRefresh);
+        $resp->headers->setCookie($removeAccess);
+        $resp->headers->setCookie($removeRefresh);
+        return $resp;
     }
 }

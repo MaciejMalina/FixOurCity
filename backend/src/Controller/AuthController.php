@@ -93,6 +93,6 @@ class AuthController extends AbstractController
     public function logout(Request $request): JsonResponse
     {
         $user = $this->getUser();
-        return $this->service->logout($request, $user);
+        return $this->authService->logout($request, $user);
     }
 }

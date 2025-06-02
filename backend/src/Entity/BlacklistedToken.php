@@ -16,7 +16,7 @@ class BlacklistedToken
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 512, unique: true)]
+    #[ORM\Column(length: 1024, unique: true)]
     private string $token;
 
     #[ORM\Column(type: 'datetime_immutable')]
