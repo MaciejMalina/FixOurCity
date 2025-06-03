@@ -1,6 +1,3 @@
-/* ------------------ EditReport.css ------------------ */
-
-/* -- Zmienne globalne (jeżeli nie są już gdzieś w projekcie) -- */
 :root {
   --main-bg: #f7f9fa;
   --main-accent: #2c9c87;
@@ -16,7 +13,6 @@
   --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* -- Globalnie, jeśli nie jest ustawione gdzie indziej -- */
 body {
   margin: 0;
   font-family: var(--font-family);
@@ -24,17 +20,15 @@ body {
   color: var(--main-text);
 }
 
-/* -- Kontener całego formularza -- */
 .edit-report-container {
-  max-width: 600px;                     /* ograniczona szerokość */
-  margin: 2rem auto;                    /* środek poziomo + odstęp od góry */
+  max-width: 600px;
+  margin: 2rem auto;
   background: var(--container-bg);
   border-radius: var(--radius);
   box-shadow: 0 2px 12px var(--shadow-light);
   padding: calc(var(--spacing) * 1.5);
 }
 
-/* -- Nagłówek formularza -- */
 .edit-report-container h2 {
   margin-top: 0;
   margin-bottom: 1.5rem;
@@ -44,14 +38,12 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* -- Sam formularz -- */
 .edit-report-container form {
   display: flex;
   flex-direction: column;
   gap: var(--spacing);
 }
 
-/* -- Etykieta (label) -- */
 .edit-report-container label {
   display: block;
   font-weight: 600;
@@ -60,7 +52,6 @@ body {
   font-size: 1rem;
 }
 
-/* -- Style wspólne dla input/textarea/select -- */
 .edit-report-container input[type="text"],
 .edit-report-container textarea,
 .edit-report-container select {
@@ -82,13 +73,11 @@ body {
   border-color: var(--main-accent);
 }
 
-/* -- Dodatkowe ustawienia dla <textarea> -- */
 .edit-report-container textarea {
   min-height: 80px;
   resize: vertical;
 }
 
-/* -- Przycisk „Zapisz” i „Anuluj” -- */
 .buttons-row {
   display: flex;
   gap: 0.75rem;
@@ -97,7 +86,7 @@ body {
 
 .edit-button,
 .cancel-button {
-  flex: 1; /* równomierna szerokość */
+  flex: 1;
   padding: 0.75rem 1rem;
   font-size: 1rem;
   font-family: inherit;
@@ -134,7 +123,6 @@ body {
   transform: translateY(-1px);
 }
 
-/* -- Komunikat błędu wyświetlany wewnątrz formularza -- */
 .edit-report-error {
   color: var(--error-color);
   background: #fff0f0;
@@ -145,7 +133,6 @@ body {
   margin-top: 0.8rem;
 }
 
-/* -- Komunikat „Ładowanie...” lub „Nie znaleziono” -- */
 .edit-report-container .loading-text,
 .edit-report-container .not-found-text {
   text-align: center;
@@ -154,9 +141,6 @@ body {
   margin: 2rem 0;
 }
 
-/* ---------------- Responsywność ------------------ */
-
-/* Do 800px – zmniejszenie paddingów i font-size */
 @media (max-width: 800px) {
   .edit-report-container {
     margin: 1.5rem 1rem;
@@ -182,7 +166,6 @@ body {
   }
 }
 
-/* Do 480px – jeszcze mniejsze marginesy i czcionki */
 @media (max-width: 480px) {
   .edit-report-container {
     margin: 1rem 0.5rem;

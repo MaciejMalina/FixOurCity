@@ -86,7 +86,7 @@ export default function SidebarMenu({ children, reports = [] }) {
               Lista zgłoszeń
               {reports.length > 0 && (
                 <ul className="dashboard__recent">
-                  {reports.map(r => (
+                  {reports.slice(0,5).map(r => (
                     <li key={r.id} onClick={() => navigate(`/reports/${r.id}`)}>
                       • {r.title || `#${r.id}`}
                     </li>

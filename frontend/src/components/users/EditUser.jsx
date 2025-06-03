@@ -18,6 +18,11 @@ export default function EditUser() {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
     })
       .then(res => {
+        if (res.status === 401) {
+          setError("Twoja sesja wygasła. Zaloguj się ponownie.");
+          setTimeout(() => navigate("/login"), 2000);
+          throw new Error("401");
+        }
         if (!res.ok) throw new Error("Nie znaleziono użytkownika");
         return res.json();
       })
@@ -31,9 +36,11 @@ export default function EditUser() {
         });
         setError("");
       })
-      .catch(e => setError(e.message))
+      .catch(e => {
+        if (e.message !== "401") setError(e.message);
+      })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, navigate]);
 
   const handleChange = e => {
     const { name, value } = e.target;

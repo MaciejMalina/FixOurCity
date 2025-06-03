@@ -17,14 +17,23 @@ export default function AdminReportList() {
       },
       credentials: "include"
     })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 401) {
+          setError("Twoja sesja wygasła. Zaloguj się ponownie.");
+          setTimeout(() => navigate("/login"), 2000);
+          throw new Error("401");
+        }
+        return res.json();
+      })
       .then(data => {
         setReports(data.data || []);
         setError(null);
       })
-      .catch(err => setError(err.message))
+      .catch(err => {
+        if (err.message !== "401") setError(err.message);
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [navigate]);
 
   return (
     <div>

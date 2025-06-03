@@ -34,6 +34,11 @@ export default function ReportDetails() {
       credentials: "include",
     })
       .then((res) => {
+        if (res.status === 401) {
+          setError("Twoja sesja wygasła. Zaloguj się ponownie.");
+          setTimeout(() => navigate("/login"), 2000);
+          throw new Error("401");
+        }
         if (!res.ok) throw new Error("Nie znaleziono zgłoszenia");
         return res.json();
       })
@@ -41,9 +46,11 @@ export default function ReportDetails() {
         setReport(data);
         setError("");
       })
-      .catch((e) => setError(e.message))
+      .catch((e) => {
+        if (e.message !== "401") setError(e.message);
+      })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, navigate]);
 
   if (loading) return <Loading />;
   if (error) return (

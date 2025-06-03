@@ -26,7 +26,14 @@ export default function EditReport() {
       credentials: "include",
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
     })
-      .then(res => res.json())
+      .then(res => {
+      if (res.status === 401) {
+        setError("Twoja sesja wygasła. Zaloguj się ponownie.");
+        setTimeout(() => navigate("/login"), 2000);
+        throw new Error("401");
+      }
+      return res.json();
+    })
       .then(data => {
         setReport(data);
         setForm({
@@ -38,7 +45,9 @@ export default function EditReport() {
           longitude: data.longitude || ""
         });
       })
-      .catch(() => setError("Nie znaleziono zgłoszenia"));
+      .catch(e => {
+        if (e.message !== "401") setError("Nie znaleziono zgłoszenia");
+    });
 
     fetch("/api/v1/categories", { credentials: "include" })
       .then(res => res.json())
@@ -47,7 +56,7 @@ export default function EditReport() {
       .then(res => res.json())
       .then(data => setStatuses(data.data || []));
     setLoading(false);
-  }, [id]);
+  }, [id, navigate]);
 
   const handleChange = e => {
     const { name, value } = e.target;
