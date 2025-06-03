@@ -10,20 +10,50 @@ function clearAllCookies() {
   });
 }
 
+function prefetchIsAdmin(token) {
+  const cached = sessionStorage.getItem("isAdmin");
+  if (cached !== null) return;
+  fetch('/api/v1/auth/me', {
+    headers: { Authorization: `Bearer ${token}` },
+    credentials: 'include'
+  })
+    .then(res => res.json())
+    .then(data => {
+      sessionStorage.setItem("isAdmin", data.roles?.includes('ROLE_ADMIN') ? "1" : "0");
+    })
+    .catch(() => sessionStorage.setItem("isAdmin", "0"));
+}
+
 export default function SidebarMenu({ children, reports = [] }) {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const [isAdmin, setIsAdmin] = React.useState(false);
 
+  const handleAdminHover = () => {
+    if (token) prefetchIsAdmin(token);
+  };
+
   React.useEffect(() => {
     if (!token) return;
+    const cached = sessionStorage.getItem("isAdmin");
+    if (cached !== null) {
+      setIsAdmin(cached === "1");
+      return;
+    }
     fetch('/api/v1/auth/me', {
       headers: { Authorization: `Bearer ${token}` },
       credentials: 'include'
     })
       .then(res => res.json())
-      .then(data => setIsAdmin(data.roles?.includes('ROLE_ADMIN')))
-      .catch(() => setIsAdmin(false));
+      .then(data => {
+        const admin = data.roles?.includes('ROLE_ADMIN');
+        setIsAdmin(admin);
+        sessionStorage.setItem("isAdmin", admin ? "1" : "0");
+      })
+      .catch(() => {
+        setIsAdmin(false);
+        sessionStorage.setItem("isAdmin", "0");
+      });
   }, [token]);
 
   const handleLogout = async () => {
@@ -39,6 +69,7 @@ export default function SidebarMenu({ children, reports = [] }) {
       console.error('Logout error:', e);
     }
     localStorage.clear();
+    sessionStorage.removeItem("isAdmin");
     clearAllCookies();
     navigate("/login");
   };
@@ -64,9 +95,13 @@ export default function SidebarMenu({ children, reports = [] }) {
               )}
             </li>
             <li onClick={() => navigate("/new-report")}>Dodaj nowe zgłoszenie</li>
-            {isAdmin && (
-              <li onClick={() => navigate("/admin")}>Panel administratora</li>
-            )}
+            <li
+              style={{ display: isAdmin ? undefined : "none" }}
+              onClick={() => navigate("/admin")}
+              onMouseEnter={handleAdminHover}
+            >
+              Panel administratora
+            </li>
           </ul>
         </nav>
         <button className="dashboard__logout" onClick={handleLogout}>
