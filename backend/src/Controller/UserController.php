@@ -70,6 +70,15 @@ class UserController extends AbstractController
                 )
             ),
             new OA\Response(
+                response: 401,
+                description: 'Brak autoryzacji',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Not authenticated'),
+                    ]
+                )
+            ),
+            new OA\Response(
                 response: 403,
                 description: 'Brak uprawnień',
                 content: new OA\JsonContent(
@@ -172,6 +181,24 @@ class UserController extends AbstractController
                         new OA\Property(property: 'error', type: 'string', example: 'Invalid input data'),
                     ]
                 )
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'Brak autoryzacji',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Not authenticated'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Brak uprawnień',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Access denied'),
+                    ]
+                )
             )
         ]
     )]
@@ -220,6 +247,24 @@ class UserController extends AbstractController
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: 'error', type: 'string', example: 'User not found'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'Brak autoryzacji',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Not authenticated'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Brak uprawnień',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Access denied'),
                     ]
                 )
             )
@@ -284,6 +329,33 @@ class UserController extends AbstractController
                         new OA\Property(property: 'error', type: 'string', example: 'User not found'),
                     ]
                 )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Błędne dane',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Invalid input data'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'Brak autoryzacji',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Not authenticated'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Brak uprawnień',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Access denied'),
+                    ]
+                )
             )
         ]
     )]
@@ -318,6 +390,24 @@ class UserController extends AbstractController
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: 'error', type: 'string', example: 'User not found'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'Brak autoryzacji',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Not authenticated'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Brak uprawnień',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Access denied'),
                     ]
                 )
             )

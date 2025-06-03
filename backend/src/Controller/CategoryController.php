@@ -133,6 +133,24 @@ class CategoryController extends AbstractController
                     ]
                 )
             ),
+            new OA\Response(
+                response: 401,
+                description: 'Brak autoryzacji',
+                content: new OA\JsonContent(type: 'object',
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Not authenticated')
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Brak uprawnień (Access Denied)',
+                content: new OA\JsonContent(type: 'object',
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
+                    ]
+                )
+            ),
         ]
     )]
     public function create(Request $request): JsonResponse
@@ -245,6 +263,24 @@ class CategoryController extends AbstractController
                     ]
                 )
             ),
+            new OA\Response(
+                response: 401,
+                description: 'Brak autoryzacji',
+                content: new OA\JsonContent(type: 'object',
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Not authenticated')
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Brak uprawnień (Access Denied)',
+                content: new OA\JsonContent(type: 'object',
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
+                    ]
+                )
+            ),
         ]
     )]
     public function update(int $id, Request $request): JsonResponse
@@ -283,6 +319,24 @@ class CategoryController extends AbstractController
                 content: new OA\JsonContent(type: 'object',
                     properties: [
                         new OA\Property(property: 'error', type: 'string', example: 'Category not found')
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 401,
+                description: 'Brak autoryzacji',
+                content: new OA\JsonContent(type: 'object',
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Not authenticated')
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Brak uprawnień (Access Denied)',
+                content: new OA\JsonContent(type: 'object',
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
                     ]
                 )
             ),

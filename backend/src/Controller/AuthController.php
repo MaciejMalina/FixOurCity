@@ -183,6 +183,15 @@ class AuthController extends AbstractController
                         new OA\Property(property: 'error', type: 'string', example: 'Not authenticated')
                     ]
                 )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Brak uprawnień (Access Denied)',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
+                    ]
+                )
             )
         ]
     )]
