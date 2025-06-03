@@ -37,7 +37,7 @@ An administrator can additionally:
 ---
 
 ## Architecture Diagram
-
+```
 +-------------------+        REST API       +-------------------+        SQL/RabbitMQ
 |    Frontend       |  <----------------->  |     Backend       | <-----------------+
 |  (React + Vite)   |                       |   (Symfony 7)     |                   |
@@ -50,7 +50,7 @@ An administrator can additionally:
         |                                         |---+----> PostgreSQL (DB)        |
         |                                         |   |                             |
         |                                         |   +----> RabbitMQ               |
-
+```
 ---
 
 ## Technologies

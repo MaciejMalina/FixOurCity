@@ -1,7 +1,7 @@
 const API = "http://localhost:8000/api/v1";
 
-export async function fetchReports({ page = 1, limit = 20 } = {}) {
-  const resp = await fetch(`${API}/reports?page=${page}&limit=${limit}`, {
+export async function fetchReports({ page = 1, limit = 20, query = "" } = {}) {
+  const resp = await fetch(`${API}/reports?page=${page}&limit=${limit}${query}`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
       Accept: "application/json"

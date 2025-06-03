@@ -21,34 +21,24 @@ class ReportRepository extends ServiceEntityRepository
         string $sortOrder = 'DESC'
     ): array {
         $qb = $this->createQueryBuilder('r')
-                   ->addSelect('c')
-                   ->addSelect('s')
                    ->leftJoin('r.category', 'c')
-                   ->leftJoin('r.status', 's');
+                   ->leftJoin('r.status', 's')
+                   ->addSelect('c', 's');
 
         if (!empty($filters['category'])) {
             $qb->andWhere('c.id = :catId')
                ->setParameter('catId', $filters['category']);
         }
-
         if (!empty($filters['status'])) {
-            $qb->andWhere('s.id = :statId')
-               ->setParameter('statId', $filters['status']);
+            $qb->andWhere('s.id = :statusId')
+               ->setParameter('statusId', $filters['status']);
         }
-
         if (!empty($filters['title'])) {
-            $qb->andWhere('r.title ILIKE :title')
-               ->setParameter('title', '%' . $filters['title'] . '%');
+            $qb->andWhere('LOWER(r.title) LIKE :title')
+               ->setParameter('title', '%' . mb_strtolower($filters['title']) . '%');
         }
 
-        $allowedSortFields = ['createdAt','title'];
-        if (!in_array($sortField, $allowedSortFields)) {
-            $sortField = 'createdAt';
-        }
-
-        $order = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
-
-        $qb->orderBy('r.'.$sortField, $order)
+        $qb->orderBy('r.' . $sortField, $sortOrder)
            ->setFirstResult(($page - 1) * $limit)
            ->setMaxResults($limit);
 
@@ -71,7 +61,7 @@ class ReportRepository extends ServiceEntityRepository
                ->setParameter('statId', $filters['status']);
         }
         if (!empty($filters['title'])) {
-            $qb->andWhere('r.title ILIKE :title')
+            $qb->andWhere('LOWER(r.title) LIKE :title')
                ->setParameter('title', '%' . $filters['title'] . '%');
         }
 

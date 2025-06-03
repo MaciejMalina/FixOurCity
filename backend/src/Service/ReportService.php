@@ -120,7 +120,7 @@ class ReportService
             'createdAt'    => $r->getCreatedAt()->format('c'),
             'latitude'     => $r->getLatitude(),
             'longitude'    => $r->getLongitude(),
-            'category'     => ['id' => $r->getCategory()->getId(),    'name' => $r->getCategory()->getName()],
+            'category'     => ['id' => $r->getCategory()->getId(), 'name' => $r->getCategory()->getName()],
             'status'       => ['id' => $r->getStatus()->getId(),      'label'=> $r->getStatus()->getLabel()],
             'images'       => $images,
             'comments'     => $comments,

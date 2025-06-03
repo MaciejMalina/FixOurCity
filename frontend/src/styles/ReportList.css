@@ -81,7 +81,58 @@ body {
   max-width: 800px;
 }
 
+.report-list__filters {
+  background: #f7f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(44,156,135,0.04);
+}
+
+.report-list__filters form {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.report-list__filters select,
+.report-list__filters input[type="text"] {
+  padding: 0.4em 0.8em;
+  border: 1px solid #b2dfdb;
+  border-radius: 5px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.report-list__filters select:focus,
+.report-list__filters input[type="text"]:focus {
+  border-color: #219a8a;
+  outline: none;
+}
+
+.report-list__filters button {
+  background: #219a8a;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.45em 1.2em;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.report-list__filters button:hover {
+  background: #176e5e;
+}
+
 @media (max-width: 900px) {
+  .report-list__filters form {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
   .reports-list {
     margin: 1rem 0.5rem;
     max-width: none;
