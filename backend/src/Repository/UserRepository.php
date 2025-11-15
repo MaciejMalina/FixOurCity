@@ -14,13 +14,14 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
-    public function findPaginated(
-        array $filters = [],
-        array $sort = ['u.id' => 'ASC'],
-        int $page = 1,
-        int $limit = 10
-    ): Paginator {
+    public function findPaginated(array $filters = [], array $sort = ['u.id' => 'ASC'], int $page = 1, int $limit = 10): Paginator
+    {
         $qb = $this->createQueryBuilder('u');
+
+        if (array_key_exists('approved', $filters)) {
+            $qb->andWhere('u.approved = :approved')
+            ->setParameter('approved', (bool)$filters['approved']);
+        }
 
         if (!empty($filters['email'])) {
             $qb->andWhere('u.email LIKE :email')

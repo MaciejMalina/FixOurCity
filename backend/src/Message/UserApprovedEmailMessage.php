@@ -2,7 +2,7 @@
 
 namespace App\Message;
 
-final class SendWelcomeEmailMessage
+final class UserApprovedEmailMessage
 {
     public function __construct(
         private string $email,

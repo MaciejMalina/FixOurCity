@@ -1,6 +1,7 @@
 <?php
 namespace App\Service;
 
+use App\Entity\User;
 use App\Entity\Report;
 use App\Repository\ReportRepository;
 use App\Repository\CategoryRepository;
@@ -18,34 +19,27 @@ class ReportService
         private StatusRepository $statusRepo
     ) {}
 
-    public function create(array $data): Report
+    public function create(array $data, User $author): Report
     {
         if (empty($data['title']) || empty($data['description']) 
             || empty($data['categoryId']) || empty($data['statusId'])) {
             throw new BadRequestHttpException('title, description, categoryId, statusId are required');
         }
 
-        $cat = $this->categoryRepo->find($data['categoryId']);
-        if (!$cat) {
-            throw new NotFoundHttpException('Category not found');
-        }
-        $st = $this->statusRepo->find($data['statusId']);
-        if (!$st) {
-            throw new NotFoundHttpException('Status not found');
-        }
+        $cat = $this->categoryRepo->find($data['categoryId']) 
+            ?? throw new NotFoundHttpException('Category not found');
+        $st  = $this->statusRepo->find($data['statusId']) 
+            ?? throw new NotFoundHttpException('Status not found');
 
         $r = new Report();
         $r->setTitle($data['title'])
-          ->setDescription($data['description'])
-          ->setCategory($cat)
-          ->setStatus($st);
+        ->setDescription($data['description'])
+        ->setCategory($cat)
+        ->setStatus($st)
+        ->setUser($author);
 
-        if (isset($data['latitude'])) {
-            $r->setLatitude((string)$data['latitude']);
-        }
-        if (isset($data['longitude'])) {
-            $r->setLongitude((string)$data['longitude']);
-        }
+        if (isset($data['latitude']))  { $r->setLatitude((string)$data['latitude']); }
+        if (isset($data['longitude'])) { $r->setLongitude((string)$data['longitude']); }
 
         $this->em->persist($r);
         $this->em->flush();
@@ -124,7 +118,13 @@ class ReportService
             'status'       => ['id' => $r->getStatus()->getId(),      'label'=> $r->getStatus()->getLabel()],
             'images'       => $images,
             'comments'     => $comments,
-        ];
+            'author' => [
+                'id' => $r->getUser()->getId(),
+                'email' => $r->getUser()->getEmail(),
+                'firstName' => $r->getUser()->getFirstName(),
+                'lastName'  => $r->getUser()->getLastName(),
+                ],
+            ];
     }
 
     public function listFiltered(

@@ -1,7 +1,9 @@
 framework:
-    messenger:
-        default_bus: messenger.bus.default
-        transports:
-            async: '%env(MESSENGER_TRANSPORT_DSN)%'
-        routing:
-            'App\Message\SendWelcomeEmailMessage': async
+  messenger:
+    transports:
+      async: '%env(MESSENGER_TRANSPORT_DSN)%'
+
+    routing:
+      'App\Message\SendWelcomeEmailMessage': async
+      'App\Message\AdminNewUserRegisteredMessage': async
+      'App\Message\UserApprovedEmailMessage': async

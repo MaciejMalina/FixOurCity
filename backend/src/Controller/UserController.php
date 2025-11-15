@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User as AppUser;
 use App\Entity\User;
 use App\Service\UserService;
 use App\Repository\UserRepository;
@@ -95,7 +96,12 @@ class UserController extends AbstractController
             'email'     => $request->query->get('email'),
             'firstName' => $request->query->get('firstName'),
             'lastName'  => $request->query->get('lastName'),
-        ]);
+        ], fn($v) => $v !== null && $v !== '');
+
+        if ($request->query->has('approved')) {
+            $filters['approved'] = filter_var($request->query->get('approved'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($filters['approved'] === null) { unset($filters['approved']); }
+        }
         $sort = $request->query->get('sort', 'u.id:ASC');
         $parts = explode(':', $sort);
         $field = $parts[0] ?? 'u.id';
@@ -119,6 +125,8 @@ class UserController extends AbstractController
                 'firstName' => $u->getFirstName(),
                 'lastName'  => $u->getLastName(),
                 'roles'     => $u->getRoles(),
+                'approved'  => $u->isApproved(),
+                'approvedAt'=> $u->getApprovedAt()?->format(\DateTimeInterface::ATOM),
             ];
         }
 
@@ -213,6 +221,8 @@ class UserController extends AbstractController
             'firstName' => $user->getFirstName(),
             'lastName'  => $user->getLastName(),
             'roles'     => $user->getRoles(),
+            'approved'  => $user->isApproved(),
+            'approvedAt'=> $user->getApprovedAt(),
         ], 201);
     }
 
@@ -278,6 +288,8 @@ class UserController extends AbstractController
             'firstName' => $user->getFirstName(),
             'lastName'  => $user->getLastName(),
             'roles'     => $user->getRoles(),
+            'approved'  => $user->isApproved(),
+            'approvedAt'=> $user->getApprovedAt(),
         ]);
     }
 
@@ -361,8 +373,9 @@ class UserController extends AbstractController
     )]
     public function update(User $user, Request $request): JsonResponse
     {
-        $payload = json_decode($request->getContent(), true);
-        $user = $this->userService->update($user, $payload);
+        $payload = json_decode($request->getContent(), true) ?? [];
+        $actor = $this->getUser();
+        $user = $this->userService->update($user, $payload, $actor);
 
         return $this->json([
             'id'        => $user->getId(),
@@ -370,6 +383,7 @@ class UserController extends AbstractController
             'firstName' => $user->getFirstName(),
             'lastName'  => $user->getLastName(),
             'roles'     => $user->getRoles(),
+            'approved'  => $user->isApproved(),
         ]);
     }
 
@@ -417,5 +431,35 @@ class UserController extends AbstractController
     {
         $this->userService->delete($user);
         return $this->json(null, 204);
+    }
+    
+    #[Route('/{id}/approve', methods: ['PATCH'])]
+    #[OA\Patch(
+        summary: 'Zatwierdź użytkownika',
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Użytkownik zatwierdzony')]
+    )]
+    public function approve(User $user): JsonResponse
+    {
+        /** @var User $admin */
+        $admin = $this->getUser();
+        $user = $this->userService->approve($user, $admin);
+
+        return $this->json([
+            'id'         => $user->getId(),
+            'approved'   => $user->isApproved(),
+            'approvedAt' => $user->getApprovedAt()?->format(\DateTimeInterface::ATOM),
+        ]);
+    }
+
+    #[Route('/{id}/unapprove', methods: ['PATCH'])]
+    public function unapprove(User $user): JsonResponse
+    {
+        $user = $this->userService->unapprove($user);
+        return $this->json([
+            'id'         => $user->getId(),
+            'approved'   => $user->isApproved(),
+            'approvedAt' => $user->getApprovedAt()?->format(\DateTimeInterface::ATOM),
+        ]);
     }
 }

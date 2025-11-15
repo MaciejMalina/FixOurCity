@@ -12,6 +12,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\Index(name: "email_idx", columns: ["email"])]
+#[ORM\Index(name: "user_approved_idx", columns: ["approved"])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -42,6 +43,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToMany(mappedBy: "user", targetEntity: AuditLog::class)]
     private Collection $auditLogs;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $approved = false;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $approvedAt = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(name: "approved_by_id", referencedColumnName: "id", onDelete: "SET NULL", nullable: true)]
+    private ?User $approvedBy = null;
 
     #[ORM\ManyToMany(targetEntity: Report::class, inversedBy: "followers")]
     #[ORM\JoinTable(name: "report_follower")]
@@ -175,6 +186,40 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeFollowedReport(Report $report): self
     {
         $this->followedReports->removeElement($report);
+        return $this;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approved || in_array('ROLE_ADMIN', $this->roles, true);
+    }
+
+    public function setApproved(bool $approved): self
+    {
+        if ($approved === false && in_array('ROLE_ADMIN', $this->roles, true)) {
+            return $this;
+        }
+
+        $this->approved = $approved;
+        return $this;
+    }
+    
+    public function getApprovedAt(): ?\DateTimeInterface
+    {
+        return $this->approvedAt;
+    }
+    public function setApprovedAt(?\DateTimeInterface $dt): self
+    {
+        $this->approvedAt = $dt;
+        return $this;
+    }
+    public function getApprovedBy(): ?User
+    {
+        return $this->approvedBy;
+    }
+    public function setApprovedBy(?User $admin): self
+    {
+        $this->approvedBy = $admin;
         return $this;
     }
 }

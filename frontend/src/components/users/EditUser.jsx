@@ -6,7 +6,7 @@ export default function EditUser() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [form, setForm] = useState({ email: "", firstName: "", lastName: "", roles: [] });
+  const [form, setForm] = useState({ email: "", firstName: "", lastName: "", roles: [],  approved: false });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +32,8 @@ export default function EditUser() {
           email: data.email,
           firstName: data.firstName,
           lastName: data.lastName,
-          roles: data.roles || []
+          roles: data.roles || [],
+          approved: data.approved ?? false
         });
         setError("");
       })
@@ -64,7 +65,19 @@ export default function EditUser() {
     e.preventDefault();
     setSaving(true);
     setError("");
+
     try {
+      const payload = {
+        email: form.email,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        roles: form.roles
+      };
+
+      if (!form.roles.includes("ROLE_ADMIN")) {
+        payload.approved = form.approved;
+      }
+
       const resp = await fetch(`/api/v1/users/${id}`, {
         method: "PATCH",
         headers: {
@@ -72,12 +85,14 @@ export default function EditUser() {
           Authorization: `Bearer ${localStorage.getItem("token")}`
         },
         credentials: "include",
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
+
       if (!resp.ok) {
         const { error } = await resp.json().catch(() => ({}));
         throw new Error(error || "Błąd zapisu");
       }
+
       navigate("/admin");
     } catch (e) {
       setError(e.message);
@@ -148,6 +163,23 @@ export default function EditUser() {
               onChange={handleRoleChange}
             /> Administrator
           </label>
+        </div>
+        <div className="form-row">
+          <label>Status konta:</label>
+          {form.roles.includes("ROLE_ADMIN") ? (
+            <span>Administrator – zawsze zatwierdzony</span>
+          ) : (
+            <label>
+              <input
+                type="checkbox"
+                checked={form.approved}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, approved: e.target.checked }))
+                }
+              />{" "}
+              Zatwierdzony przez administratora
+            </label>
+          )}
         </div>
         <div style={{ marginTop: 16 }}>
           <button type="submit" disabled={saving}>

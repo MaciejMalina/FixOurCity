@@ -25,6 +25,11 @@ class ReportRepository extends ServiceEntityRepository
                    ->leftJoin('r.status', 's')
                    ->addSelect('c', 's');
 
+        if (!empty($filters['authorId'])) {
+            $qb->leftJoin('r.user', 'u')
+                ->andWhere('u.id = :authorId')
+                ->setParameter('authorId', $filters['authorId']);
+        }
         if (!empty($filters['category'])) {
             $qb->andWhere('c.id = :catId')
                ->setParameter('catId', $filters['category']);

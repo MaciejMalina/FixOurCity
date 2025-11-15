@@ -5,6 +5,7 @@ use App\Repository\ReportRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use App\Entity\User;
 
 #[ORM\Entity(repositoryClass: ReportRepository::class)]
 #[ORM\Table(name: 'report')]
@@ -29,6 +30,10 @@ class Report
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
     private ?string $longitude = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'reports')]
+    #[ORM\JoinColumn(nullable: false)]
+    private User $user;
 
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'reports')]
     #[ORM\JoinColumn(nullable: false)]
@@ -65,6 +70,15 @@ class Report
         return $this;
     }
 
+    public function getUser(): User 
+    {
+        return $this->user;
+    }
+    public function setUser(User $u): self
+    {
+        $this->user = $u; return $this;
+    }
+    
     public function getDescription(): string
     {
         return $this->description;

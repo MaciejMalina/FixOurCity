@@ -3,6 +3,8 @@ namespace App\Controller;
 
 use App\Service\ReportService;
 use App\Repository\ReportRepository;
+use App\Security\CanReportVoter;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +16,7 @@ use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Reports')]
 #[Route(path: '/api/v1/reports')]
+#[IsGranted('ROLE_USER')]
 class ReportController extends AbstractController
 {
     public function __construct(
@@ -262,13 +265,25 @@ class ReportController extends AbstractController
                     ]
                 )
             ),
+            new OA\Response(
+                response: 403,
+                description: 'Użytkownik niezatwierdzony',
+                content: new OA\JsonContent(
+                    properties: [ new OA\Property(property: 'error', type: 'string', example: 'Account not approved by admin') ]
+                )
+            ),
         ]
     )]
     public function create(Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted(CanReportVoter::CAN_REPORT);
+
         try {
             $data = json_decode($request->getContent(), true);
-            $r    = $this->reportService->create($data);
+            $current = $this->getUser();
+
+            $r = $this->reportService->create($data, $current);
+
             return $this->json($this->reportService->serialize($r), 201);
         } catch (BadRequestHttpException $e) {
             return $this->json(['error' => $e->getMessage()], 400);
